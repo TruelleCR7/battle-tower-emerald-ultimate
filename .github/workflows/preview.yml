@@ -1,0 +1,39 @@
+name: Preview artifact
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate battle engine
+        run: |
+          node --test tests/*.test.mjs
+          python -m unittest discover -s tests -p 'test_*.py'
+      - name: Build responsive PWA
+        run: python scripts/build.py
+      - name: Check release essentials
+        run: |
+          test -s dist/index.html
+          test -s dist/manifest.webmanifest
+          test -s dist/sw.js
+          test -s dist/data/catalog.json
+          test -s dist/icons/icon-192.png
+          test -s dist/icons/icon-512.png
+      - name: Upload ready-to-host website
+        uses: actions/upload-artifact@v4
+        with:
+          name: battle-tower-develop-site
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
