@@ -1,0 +1,2201 @@
+{
+  "version": "0.6.0-preview",
+  "fullConformance": false,
+  "upstream": {
+    "pokeemerald": {
+      "url": "https://github.com/pret/pokeemerald",
+      "commit": "731ad5bfd6e6f265508d0efcca0ba42f9dcf5881"
+    },
+    "showdown": {
+      "url": "https://github.com/smogon/pokemon-showdown",
+      "commit": "651b6fa8542bb75078fd66337ab150effe623d30"
+    },
+    "bugfix": false
+  },
+  "data": {
+    "species": 386,
+    "moves": 354,
+    "frontierSets": 882,
+    "aiExecution": "SOURCE_SCRIPT_INTERPRETER_PARTIAL_MECHANICS",
+    "mechanics": "PARTIAL",
+    "split": "gen4",
+    "trainers": 300
+  },
+  "tests": {
+    "node": 31,
+    "python": 7,
+    "differentialEngineTests": false,
+    "simulationPositions": 80,
+    "simulatedTurns": 640
+  },
+  "browser": {
+    "desktop": "team selection and battle turn passed",
+    "mobile": "360x780 CSS iframe; body width equals scrollWidth; attack buttons 58px; no physical S22 used",
+    "resume": "reload and resume passed",
+    "publishedUI": "not browser-verified; native deployment status required"
+  },
+  "moveEffects": [
+    {
+      "move": "POUND",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "KARATE_CHOP",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DOUBLE_SLAP",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "COMET_PUNCH",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEGA_PUNCH",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PAY_DAY",
+      "originalEffect": "PAY_DAY",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FIRE_PUNCH",
+      "originalEffect": "BURN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ICE_PUNCH",
+      "originalEffect": "FREEZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THUNDER_PUNCH",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SCRATCH",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "VICE_GRIP",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GUILLOTINE",
+      "originalEffect": "OHKO",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RAZOR_WIND",
+      "originalEffect": "RAZOR_WIND",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SWORDS_DANCE",
+      "originalEffect": "ATTACK_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CUT",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GUST",
+      "originalEffect": "GUST",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WING_ATTACK",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WHIRLWIND",
+      "originalEffect": "ROAR",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FLY",
+      "originalEffect": "SEMI_INVULNERABLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BIND",
+      "originalEffect": "TRAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLAM",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "VINE_WHIP",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STOMP",
+      "originalEffect": "FLINCH_MINIMIZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DOUBLE_KICK",
+      "originalEffect": "DOUBLE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEGA_KICK",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "JUMP_KICK",
+      "originalEffect": "RECOIL_IF_MISS",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROLLING_KICK",
+      "originalEffect": "FLINCH_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SAND_ATTACK",
+      "originalEffect": "ACCURACY_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HEADBUTT",
+      "originalEffect": "FLINCH_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HORN_ATTACK",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FURY_ATTACK",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HORN_DRILL",
+      "originalEffect": "OHKO",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TACKLE",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BODY_SLAM",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WRAP",
+      "originalEffect": "TRAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TAKE_DOWN",
+      "originalEffect": "RECOIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THRASH",
+      "originalEffect": "RAMPAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DOUBLE_EDGE",
+      "originalEffect": "DOUBLE_EDGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TAIL_WHIP",
+      "originalEffect": "DEFENSE_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "POISON_STING",
+      "originalEffect": "POISON_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TWINEEDLE",
+      "originalEffect": "TWINEEDLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PIN_MISSILE",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LEER",
+      "originalEffect": "DEFENSE_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BITE",
+      "originalEffect": "FLINCH_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GROWL",
+      "originalEffect": "ATTACK_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROAR",
+      "originalEffect": "ROAR",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SING",
+      "originalEffect": "SLEEP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SUPERSONIC",
+      "originalEffect": "CONFUSE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SONIC_BOOM",
+      "originalEffect": "SONICBOOM",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DISABLE",
+      "originalEffect": "DISABLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ACID",
+      "originalEffect": "DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "EMBER",
+      "originalEffect": "BURN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FLAMETHROWER",
+      "originalEffect": "BURN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MIST",
+      "originalEffect": "MIST",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WATER_GUN",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HYDRO_PUMP",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SURF",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ICE_BEAM",
+      "originalEffect": "FREEZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BLIZZARD",
+      "originalEffect": "FREEZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PSYBEAM",
+      "originalEffect": "CONFUSE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BUBBLE_BEAM",
+      "originalEffect": "SPEED_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AURORA_BEAM",
+      "originalEffect": "ATTACK_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HYPER_BEAM",
+      "originalEffect": "RECHARGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PECK",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DRILL_PECK",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SUBMISSION",
+      "originalEffect": "RECOIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LOW_KICK",
+      "originalEffect": "LOW_KICK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "COUNTER",
+      "originalEffect": "COUNTER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SEISMIC_TOSS",
+      "originalEffect": "LEVEL_DAMAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STRENGTH",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ABSORB",
+      "originalEffect": "ABSORB",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEGA_DRAIN",
+      "originalEffect": "ABSORB",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LEECH_SEED",
+      "originalEffect": "LEECH_SEED",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GROWTH",
+      "originalEffect": "SPECIAL_ATTACK_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RAZOR_LEAF",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SOLAR_BEAM",
+      "originalEffect": "SOLAR_BEAM",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "POISON_POWDER",
+      "originalEffect": "POISON",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STUN_SPORE",
+      "originalEffect": "PARALYZE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLEEP_POWDER",
+      "originalEffect": "SLEEP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PETAL_DANCE",
+      "originalEffect": "RAMPAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STRING_SHOT",
+      "originalEffect": "SPEED_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DRAGON_RAGE",
+      "originalEffect": "DRAGON_RAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FIRE_SPIN",
+      "originalEffect": "TRAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THUNDER_SHOCK",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THUNDERBOLT",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THUNDER_WAVE",
+      "originalEffect": "PARALYZE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THUNDER",
+      "originalEffect": "THUNDER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROCK_THROW",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "EARTHQUAKE",
+      "originalEffect": "EARTHQUAKE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FISSURE",
+      "originalEffect": "OHKO",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DIG",
+      "originalEffect": "SEMI_INVULNERABLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TOXIC",
+      "originalEffect": "TOXIC",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CONFUSION",
+      "originalEffect": "CONFUSE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PSYCHIC",
+      "originalEffect": "SPECIAL_DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HYPNOSIS",
+      "originalEffect": "SLEEP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEDITATE",
+      "originalEffect": "ATTACK_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AGILITY",
+      "originalEffect": "SPEED_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "QUICK_ATTACK",
+      "originalEffect": "QUICK_ATTACK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RAGE",
+      "originalEffect": "RAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TELEPORT",
+      "originalEffect": "TELEPORT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "NIGHT_SHADE",
+      "originalEffect": "LEVEL_DAMAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MIMIC",
+      "originalEffect": "MIMIC",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SCREECH",
+      "originalEffect": "DEFENSE_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DOUBLE_TEAM",
+      "originalEffect": "EVASION_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RECOVER",
+      "originalEffect": "RESTORE_HP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HARDEN",
+      "originalEffect": "DEFENSE_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MINIMIZE",
+      "originalEffect": "MINIMIZE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SMOKESCREEN",
+      "originalEffect": "ACCURACY_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CONFUSE_RAY",
+      "originalEffect": "CONFUSE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WITHDRAW",
+      "originalEffect": "DEFENSE_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DEFENSE_CURL",
+      "originalEffect": "DEFENSE_CURL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BARRIER",
+      "originalEffect": "DEFENSE_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LIGHT_SCREEN",
+      "originalEffect": "LIGHT_SCREEN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HAZE",
+      "originalEffect": "HAZE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "REFLECT",
+      "originalEffect": "REFLECT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FOCUS_ENERGY",
+      "originalEffect": "FOCUS_ENERGY",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BIDE",
+      "originalEffect": "BIDE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "METRONOME",
+      "originalEffect": "METRONOME",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MIRROR_MOVE",
+      "originalEffect": "MIRROR_MOVE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SELF_DESTRUCT",
+      "originalEffect": "EXPLOSION",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "EGG_BOMB",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LICK",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SMOG",
+      "originalEffect": "POISON_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLUDGE",
+      "originalEffect": "POISON_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BONE_CLUB",
+      "originalEffect": "FLINCH_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FIRE_BLAST",
+      "originalEffect": "BURN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WATERFALL",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CLAMP",
+      "originalEffect": "TRAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SWIFT",
+      "originalEffect": "ALWAYS_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SKULL_BASH",
+      "originalEffect": "SKULL_BASH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPIKE_CANNON",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CONSTRICT",
+      "originalEffect": "SPEED_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AMNESIA",
+      "originalEffect": "SPECIAL_DEFENSE_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "KINESIS",
+      "originalEffect": "ACCURACY_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SOFT_BOILED",
+      "originalEffect": "SOFTBOILED",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HI_JUMP_KICK",
+      "originalEffect": "RECOIL_IF_MISS",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GLARE",
+      "originalEffect": "PARALYZE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DREAM_EATER",
+      "originalEffect": "DREAM_EATER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "POISON_GAS",
+      "originalEffect": "POISON",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BARRAGE",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LEECH_LIFE",
+      "originalEffect": "ABSORB",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LOVELY_KISS",
+      "originalEffect": "SLEEP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SKY_ATTACK",
+      "originalEffect": "SKY_ATTACK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TRANSFORM",
+      "originalEffect": "TRANSFORM",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BUBBLE",
+      "originalEffect": "SPEED_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DIZZY_PUNCH",
+      "originalEffect": "CONFUSE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPORE",
+      "originalEffect": "SLEEP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FLASH",
+      "originalEffect": "ACCURACY_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PSYWAVE",
+      "originalEffect": "PSYWAVE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPLASH",
+      "originalEffect": "SPLASH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ACID_ARMOR",
+      "originalEffect": "DEFENSE_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CRABHAMMER",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "EXPLOSION",
+      "originalEffect": "EXPLOSION",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FURY_SWIPES",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BONEMERANG",
+      "originalEffect": "DOUBLE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "REST",
+      "originalEffect": "REST",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROCK_SLIDE",
+      "originalEffect": "FLINCH_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HYPER_FANG",
+      "originalEffect": "FLINCH_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SHARPEN",
+      "originalEffect": "ATTACK_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CONVERSION",
+      "originalEffect": "CONVERSION",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TRI_ATTACK",
+      "originalEffect": "TRI_ATTACK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SUPER_FANG",
+      "originalEffect": "SUPER_FANG",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLASH",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SUBSTITUTE",
+      "originalEffect": "SUBSTITUTE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STRUGGLE",
+      "originalEffect": "RECOIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SKETCH",
+      "originalEffect": "SKETCH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TRIPLE_KICK",
+      "originalEffect": "TRIPLE_KICK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "THIEF",
+      "originalEffect": "THIEF",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPIDER_WEB",
+      "originalEffect": "MEAN_LOOK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MIND_READER",
+      "originalEffect": "LOCK_ON",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "NIGHTMARE",
+      "originalEffect": "NIGHTMARE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FLAME_WHEEL",
+      "originalEffect": "THAW_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SNORE",
+      "originalEffect": "SNORE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CURSE",
+      "originalEffect": "CURSE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FLAIL",
+      "originalEffect": "FLAIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CONVERSION_2",
+      "originalEffect": "CONVERSION_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AEROBLAST",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "COTTON_SPORE",
+      "originalEffect": "SPEED_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "REVERSAL",
+      "originalEffect": "FLAIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPITE",
+      "originalEffect": "SPITE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "POWDER_SNOW",
+      "originalEffect": "FREEZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PROTECT",
+      "originalEffect": "PROTECT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MACH_PUNCH",
+      "originalEffect": "QUICK_ATTACK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SCARY_FACE",
+      "originalEffect": "SPEED_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FAINT_ATTACK",
+      "originalEffect": "ALWAYS_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SWEET_KISS",
+      "originalEffect": "CONFUSE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BELLY_DRUM",
+      "originalEffect": "BELLY_DRUM",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLUDGE_BOMB",
+      "originalEffect": "POISON_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MUD_SLAP",
+      "originalEffect": "ACCURACY_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "OCTAZOOKA",
+      "originalEffect": "ACCURACY_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPIKES",
+      "originalEffect": "SPIKES",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ZAP_CANNON",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FORESIGHT",
+      "originalEffect": "FORESIGHT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DESTINY_BOND",
+      "originalEffect": "DESTINY_BOND",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PERISH_SONG",
+      "originalEffect": "PERISH_SONG",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ICY_WIND",
+      "originalEffect": "SPEED_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DETECT",
+      "originalEffect": "PROTECT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BONE_RUSH",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LOCK_ON",
+      "originalEffect": "LOCK_ON",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "OUTRAGE",
+      "originalEffect": "RAMPAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SANDSTORM",
+      "originalEffect": "SANDSTORM",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GIGA_DRAIN",
+      "originalEffect": "ABSORB",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ENDURE",
+      "originalEffect": "ENDURE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CHARM",
+      "originalEffect": "ATTACK_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROLLOUT",
+      "originalEffect": "ROLLOUT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FALSE_SWIPE",
+      "originalEffect": "FALSE_SWIPE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SWAGGER",
+      "originalEffect": "SWAGGER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MILK_DRINK",
+      "originalEffect": "SOFTBOILED",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPARK",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FURY_CUTTER",
+      "originalEffect": "FURY_CUTTER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STEEL_WING",
+      "originalEffect": "DEFENSE_UP_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEAN_LOOK",
+      "originalEffect": "MEAN_LOOK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ATTRACT",
+      "originalEffect": "ATTRACT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLEEP_TALK",
+      "originalEffect": "SLEEP_TALK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HEAL_BELL",
+      "originalEffect": "HEAL_BELL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RETURN",
+      "originalEffect": "RETURN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PRESENT",
+      "originalEffect": "PRESENT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FRUSTRATION",
+      "originalEffect": "FRUSTRATION",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SAFEGUARD",
+      "originalEffect": "SAFEGUARD",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PAIN_SPLIT",
+      "originalEffect": "PAIN_SPLIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SACRED_FIRE",
+      "originalEffect": "THAW_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MAGNITUDE",
+      "originalEffect": "MAGNITUDE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DYNAMIC_PUNCH",
+      "originalEffect": "CONFUSE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEGAHORN",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DRAGON_BREATH",
+      "originalEffect": "PARALYZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BATON_PASS",
+      "originalEffect": "BATON_PASS",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ENCORE",
+      "originalEffect": "ENCORE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PURSUIT",
+      "originalEffect": "PURSUIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RAPID_SPIN",
+      "originalEffect": "RAPID_SPIN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SWEET_SCENT",
+      "originalEffect": "EVASION_DOWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "IRON_TAIL",
+      "originalEffect": "DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "METAL_CLAW",
+      "originalEffect": "ATTACK_UP_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "VITAL_THROW",
+      "originalEffect": "VITAL_THROW",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MORNING_SUN",
+      "originalEffect": "MORNING_SUN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SYNTHESIS",
+      "originalEffect": "SYNTHESIS",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MOONLIGHT",
+      "originalEffect": "MOONLIGHT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HIDDEN_POWER",
+      "originalEffect": "HIDDEN_POWER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CROSS_CHOP",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TWISTER",
+      "originalEffect": "TWISTER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RAIN_DANCE",
+      "originalEffect": "RAIN_DANCE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SUNNY_DAY",
+      "originalEffect": "SUNNY_DAY",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CRUNCH",
+      "originalEffect": "SPECIAL_DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MIRROR_COAT",
+      "originalEffect": "MIRROR_COAT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PSYCH_UP",
+      "originalEffect": "PSYCH_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "EXTREME_SPEED",
+      "originalEffect": "QUICK_ATTACK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ANCIENT_POWER",
+      "originalEffect": "ALL_STATS_UP_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SHADOW_BALL",
+      "originalEffect": "SPECIAL_DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FUTURE_SIGHT",
+      "originalEffect": "FUTURE_SIGHT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROCK_SMASH",
+      "originalEffect": "DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WHIRLPOOL",
+      "originalEffect": "TRAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BEAT_UP",
+      "originalEffect": "BEAT_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FAKE_OUT",
+      "originalEffect": "FAKE_OUT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "UPROAR",
+      "originalEffect": "UPROAR",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "STOCKPILE",
+      "originalEffect": "STOCKPILE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SPIT_UP",
+      "originalEffect": "SPIT_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SWALLOW",
+      "originalEffect": "SWALLOW",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HEAT_WAVE",
+      "originalEffect": "BURN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HAIL",
+      "originalEffect": "HAIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TORMENT",
+      "originalEffect": "TORMENT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FLATTER",
+      "originalEffect": "FLATTER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WILL_O_WISP",
+      "originalEffect": "WILL_O_WISP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MEMENTO",
+      "originalEffect": "MEMENTO",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FACADE",
+      "originalEffect": "FACADE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FOCUS_PUNCH",
+      "originalEffect": "FOCUS_PUNCH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SMELLING_SALT",
+      "originalEffect": "SMELLINGSALT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FOLLOW_ME",
+      "originalEffect": "FOLLOW_ME",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "NATURE_POWER",
+      "originalEffect": "NATURE_POWER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CHARGE",
+      "originalEffect": "CHARGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TAUNT",
+      "originalEffect": "TAUNT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HELPING_HAND",
+      "originalEffect": "HELPING_HAND",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TRICK",
+      "originalEffect": "TRICK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROLE_PLAY",
+      "originalEffect": "ROLE_PLAY",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WISH",
+      "originalEffect": "WISH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ASSIST",
+      "originalEffect": "ASSIST",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "INGRAIN",
+      "originalEffect": "INGRAIN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SUPERPOWER",
+      "originalEffect": "SUPERPOWER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MAGIC_COAT",
+      "originalEffect": "MAGIC_COAT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "RECYCLE",
+      "originalEffect": "RECYCLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "REVENGE",
+      "originalEffect": "REVENGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BRICK_BREAK",
+      "originalEffect": "BRICK_BREAK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "YAWN",
+      "originalEffect": "YAWN",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "KNOCK_OFF",
+      "originalEffect": "KNOCK_OFF",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ENDEAVOR",
+      "originalEffect": "ENDEAVOR",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ERUPTION",
+      "originalEffect": "ERUPTION",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SKILL_SWAP",
+      "originalEffect": "SKILL_SWAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "IMPRISON",
+      "originalEffect": "IMPRISON",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "REFRESH",
+      "originalEffect": "REFRESH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GRUDGE",
+      "originalEffect": "GRUDGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SNATCH",
+      "originalEffect": "SNATCH",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SECRET_POWER",
+      "originalEffect": "SECRET_POWER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DIVE",
+      "originalEffect": "SEMI_INVULNERABLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ARM_THRUST",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CAMOUFLAGE",
+      "originalEffect": "CAMOUFLAGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TAIL_GLOW",
+      "originalEffect": "SPECIAL_ATTACK_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LUSTER_PURGE",
+      "originalEffect": "SPECIAL_DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MIST_BALL",
+      "originalEffect": "SPECIAL_ATTACK_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FEATHER_DANCE",
+      "originalEffect": "ATTACK_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TEETER_DANCE",
+      "originalEffect": "TEETER_DANCE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BLAZE_KICK",
+      "originalEffect": "BLAZE_KICK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MUD_SPORT",
+      "originalEffect": "MUD_SPORT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ICE_BALL",
+      "originalEffect": "ROLLOUT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "NEEDLE_ARM",
+      "originalEffect": "FLINCH_MINIMIZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SLACK_OFF",
+      "originalEffect": "RESTORE_HP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HYPER_VOICE",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "POISON_FANG",
+      "originalEffect": "POISON_FANG",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CRUSH_CLAW",
+      "originalEffect": "DEFENSE_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BLAST_BURN",
+      "originalEffect": "RECHARGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HYDRO_CANNON",
+      "originalEffect": "RECHARGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "METEOR_MASH",
+      "originalEffect": "ATTACK_UP_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ASTONISH",
+      "originalEffect": "FLINCH_MINIMIZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WEATHER_BALL",
+      "originalEffect": "WEATHER_BALL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AROMATHERAPY",
+      "originalEffect": "HEAL_BELL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FAKE_TEARS",
+      "originalEffect": "SPECIAL_DEFENSE_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AIR_CUTTER",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "OVERHEAT",
+      "originalEffect": "OVERHEAT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ODOR_SLEUTH",
+      "originalEffect": "FORESIGHT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROCK_TOMB",
+      "originalEffect": "SPEED_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SILVER_WIND",
+      "originalEffect": "ALL_STATS_UP_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "METAL_SOUND",
+      "originalEffect": "SPECIAL_DEFENSE_DOWN_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "GRASS_WHISTLE",
+      "originalEffect": "SLEEP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "TICKLE",
+      "originalEffect": "TICKLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "COSMIC_POWER",
+      "originalEffect": "COSMIC_POWER",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WATER_SPOUT",
+      "originalEffect": "ERUPTION",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SIGNAL_BEAM",
+      "originalEffect": "CONFUSE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SHADOW_PUNCH",
+      "originalEffect": "ALWAYS_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "EXTRASENSORY",
+      "originalEffect": "FLINCH_MINIMIZE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SKY_UPPERCUT",
+      "originalEffect": "SKY_UPPERCUT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SAND_TOMB",
+      "originalEffect": "TRAP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SHEER_COLD",
+      "originalEffect": "OHKO",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MUDDY_WATER",
+      "originalEffect": "ACCURACY_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BULLET_SEED",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "AERIAL_ACE",
+      "originalEffect": "ALWAYS_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ICICLE_SPEAR",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "IRON_DEFENSE",
+      "originalEffect": "DEFENSE_UP_2",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BLOCK",
+      "originalEffect": "MEAN_LOOK",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "HOWL",
+      "originalEffect": "ATTACK_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DRAGON_CLAW",
+      "originalEffect": "HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "FRENZY_PLANT",
+      "originalEffect": "RECHARGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BULK_UP",
+      "originalEffect": "BULK_UP",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "BOUNCE",
+      "originalEffect": "SEMI_INVULNERABLE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MUD_SHOT",
+      "originalEffect": "SPEED_DOWN_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "POISON_TAIL",
+      "originalEffect": "POISON_TAIL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "COVET",
+      "originalEffect": "THIEF",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "VOLT_TACKLE",
+      "originalEffect": "DOUBLE_EDGE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "MAGICAL_LEAF",
+      "originalEffect": "ALWAYS_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WATER_SPORT",
+      "originalEffect": "WATER_SPORT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "CALM_MIND",
+      "originalEffect": "CALM_MIND",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "LEAF_BLADE",
+      "originalEffect": "HIGH_CRITICAL",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DRAGON_DANCE",
+      "originalEffect": "DRAGON_DANCE",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "ROCK_BLAST",
+      "originalEffect": "MULTI_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "SHOCK_WAVE",
+      "originalEffect": "ALWAYS_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "WATER_PULSE",
+      "originalEffect": "CONFUSE_HIT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "DOOM_DESIRE",
+      "originalEffect": "FUTURE_SIGHT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    },
+    {
+      "move": "PSYCHO_BOOST",
+      "originalEffect": "OVERHEAT",
+      "status": "not exhaustively validated",
+      "source": "src/data/battle_moves.h"
+    }
+  ],
+  "ai": {
+    "sourceInstructions": 1738,
+    "exactMechanics": false,
+    "missingNonTowerOpcode": "if_random_safari_flee",
+    "switchAndItems": "not ported",
+    "differentialValidation": false
+  },
+  "remaining": [
+    "Complete battle script interpreter",
+    "Full AI evaluation primitives and information model",
+    "AI switching/items",
+    "Double battle target selection conformity",
+    "Network multiplayer",
+    "Original partner and record mixing rules",
+    "Battle Points and rewards",
+    "All forms and learnset combination legality"
+  ],
+  "v060": {
+    "complete": false,
+    "multiRun": "transactional IndexedDB, profile revision CAS, schema2 export/import",
+    "UI": "typed moves, badges, visual targets, static replacement icons, percentages and full per-turn logs",
+    "fixes": [
+      "MOVE_TARGET_BOTH and RANDOM",
+      "Counter/MirrorCoat core, not exhaustive",
+      "pre-turn validation"
+    ],
+    "facilities": {
+      "tower": "partial",
+      "factory": "absent",
+      "dome": "absent",
+      "palace": "absent",
+      "arena": "absent",
+      "pike": "absent",
+      "pyramid": "absent"
+    },
+    "championStudio": "absent",
+    "report": "LIVRAISON_v0.6.0.md"
+  }
+}

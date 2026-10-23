@@ -1,0 +1,6 @@
+{
+  "showdownCommit": "651b6fa8542bb75078fd66337ab150effe623d30",
+  "showdownFunction": "sim/pokemon.ts calculateStat; shared arithmetic used by Gen3, modern field effects disabled",
+  "emeraldCommit": "731ad5bfd6e6f265508d0efcca0ba42f9dcf5881",
+  "accuracyDifference": "pokeemerald combined clamped stage and integer table authoritative; Showdown Gen3 separate rational ratios differ"
+}

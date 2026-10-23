@@ -1,0 +1,11 @@
+{
+  "pokeemerald": {
+    "url": "https://github.com/pret/pokeemerald",
+    "commit": "731ad5bfd6e6f265508d0efcca0ba42f9dcf5881"
+  },
+  "showdown": {
+    "url": "https://github.com/smogon/pokemon-showdown",
+    "commit": "651b6fa8542bb75078fd66337ab150effe623d30"
+  },
+  "bugfix": false
+}

@@ -1,0 +1,74 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Conformité 0.6.2</title><style>body{background:#15252d;color:#edf0df;max-width:960px;margin:24px auto;padding:16px;font:15px/1.6 monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#9ce4c2}</style><a href="./">← Retour au jeu</a><pre># Battle Tower Emerald — rapport 0.6.2
+
+Livraison intermédiaire du 21 octobre 2026 sur le Site existant. Le moteur, l&#x27;IA et la Zone de Combat ne sont pas intégralement portés. Aucune installation absente n&#x27;est présentée comme jouable.
+
+## Statistiques : corrections intégrées
+
+| Domaine | Résultat | Validation / limite |
+|---|---|---|
+| Sept niveaux indépendants | −6 à +6 ; PV exclus ; IV/EV/natures conservés | Tests des bornes et modifications multiples |
+| Cinq statistiques ordinaires | Rapports classiques avec division entière | 7 761 comparaisons avec la méthode calculateStat extraite de Showdown |
+| Dégâts | Statistiques modifiées réellement utilisées ; brûlure, écrans, critique et arrondis corrigés | 1 352 comparaisons du calcul de base avec CalculateBaseDamage C compilé, en contexte neutre |
+| Critiques | Ignore malus offensifs et bonus défensifs | Test dédié ; taux critiques avancés, Puissance et objets non exhaustifs |
+| Vitesse | Recalcul depuis les niveaux courants, paralysie, objets et talents pris en charge | Test d&#x27;inversion d&#x27;ordre après hausse ; Griffe Rapide et tous les départages non certifiés |
+| Précision / Esquive | Différence des niveaux écrêtée, table entière originale ; tirage modulo 100 | Table C et 169 combinaisons testées ; exceptions de toutes les capacités non exhaustives |
+| Talents protecteurs | Corps Sain, Écran Fumée, Hyper Cutter, Regard Vif, Brume et Clone selon contexte implémenté | Tests fonctionnels ; audit intégral des scripts d&#x27;effets encore nécessaire |
+| Objets | Herbe Blanche restaure les niveaux négatifs, conserve les positifs et se consomme ; Bandeau Choix et plusieurs modificateurs effectifs | Tests Herbe Blanche ; interactions de tous les objets non certifiées |
+| Remplacements | Choix humain après K.O. conservé ; réinitialisation normale ; Relais transmet niveaux et états implémentés | Tests remplacement et Relais ; liste exhaustive des états du moteur encore incomplète |
+| Capacités | Hausses/baisses simples et doubles, modifications multiples, Buée Noire, copie, Cognobidon, Vantardise, Malédiction et effets secondaires améliorés | Probabilités et protections prises en compte ; pas de certification exhaustive de toutes les capacités Gen I–III |
+| Interface | Badges +/− contrastés, fiche tactile des sept niveaux, rapports et valeurs propres ; journal ancien → nouveau et blocages | Vérification navigateur à 360 px, sans débordement horizontal |
+
+Le split individuel demandé est conservé : Ball&#x27;Ombre spéciale, Dracogriffe, Poing-Glace et Séisme physiques. Les adaptations de catégorie sont intentionnelles et ne peuvent pas être comparées directement à un combat Showdown Gen III standard.
+
+La table précision/esquive suit le C Émeraude, prioritaire sur la formulation du simulateur complémentaire. La comparaison Showdown exécutée concerne sa méthode arithmétique extraite, pas un duel complet dans son simulateur Gen III. Les références exactes et leurs licences sont dans tests/reference/provenance.json et tests/reference. Le calcul C est compilé avec un contexte contrôlé : ce n&#x27;est ni une ROM, ni le moteur C complet. Les immunités complexes, puissances variables, effets rares et consommation complète du RNG restent à auditer.
+
+## Sept installations
+
+| Installation | Jouable et règles | Progression / Chef / sauvegarde | Tests et éléments manquants |
+|---|---|---|---|
+| Tour | Solo, Duo, partenaire IA ; niveaux 50/libre ; équipes et restrictions existantes conservées | Séries de sept, records, runs indépendantes ; conformité Anabel non certifiée | Tests moteur, restrictions, reprises ; réseau, récompenses complètes et conformité totale manquent |
+| Usine | Non implémentée | Aucun nouveau système de location/échanges/Noland | Aucun parcours complet validé |
+| Dôme | Non implémenté | Aucun arbre de seize participants/Tucker | Aucun tournoi complet validé |
+| Palais | Non implémenté ; source audité | Nature, catégories, faible PV et Spenser restent à intégrer | Ne remplace pas les règles par un choix aléatoire |
+| Dojo | Non implémenté ; source audité | Jugement Mind/Skill/Body et Greta restent à intégrer | Le moteur doit exposer les causes d&#x27;échec exactes avant le scoring |
+| Reptile | Non implémenté | Portes, événements, états persistants et Lucy restent à intégrer | Aucun parcours de quatorze salles validé |
+| Pyramide | Non implémentée | Carte, sac, visibilité, sept étages et Brandon restent à intégrer | Aucun parcours complet validé |
+
+L&#x27;audit Dojo a identifié le score Mind à l&#x27;exécution, Skill dépendant des drapeaux d&#x27;échec/protection/efficacité et des échecs de talents, Body calculé sur les PV au début du duel (pas les PV max), puis jugement après trois tours avec égalités et double K.O. Le Palais dépend des tables de nature, de catégories de capacités, d&#x27;un état faible PV persistant et de l&#x27;IA restreinte à la catégorie. Ces règles ne sont pas encore branchées au jeu.
+
+## Animations et préférences
+
+Options accessibles depuis l&#x27;accueil et le combat. Animations activées par défaut, désactivables ; vitesse normale/rapide et respect de la réduction des mouvements. Préférence enregistrée au profil, indépendante des runs, vérifiée après rechargement. Les GIF Pokémon au repos sont conservés.
+
+Le présentateur utilise les événements déjà calculés et ne consomme aucun RNG. Deux moteurs à graine égale donnent les mêmes états avec les plans d&#x27;animation activés/désactivés. Désactiver retire les attentes de présentation.
+
+La bibliothèque visuelle est limitée : déplacements de contact, secousses, effets colorés par familles de capacités, hausses/baisses et soins. Ce ne sont pas toutes les animations originales : projectiles, météo et effets spécifiques exhaustifs restent à porter. Les résultats sont calculés et sauvegardés avant présentation ; les PV ne sont pas encore rejoués événement par événement. Un Pokémon déjà retiré du terrain peut ne plus recevoir son effet visuel.
+
+## IA et moteur : matrice de conformité
+
+| Composant | État | Preuve / manque |
+|---|---|---|
+| Interpréteur et scoring ASM | Partiel, corrections v0.6.1 conservées | Tests de scripts et cinq fonctions C extraites ; état global incomplet |
+| Cmd_score | Vérifié pour l&#x27;opération | 32 768 comparaisons C |
+| Quatre commandes aléatoires | Vérifiées pour l&#x27;extraction/comparaison testée | 262 144 comparaisons C au seuil choisi |
+| Solo/Duo et cibles | Branchés, partiels | Ordre des scripts, mémoire, tirages et seuil allié testés |
+| Évaluation des statistiques | Utilise les calculs corrigés | Dégâts prévisionnels et vitesse ; toutes les branches de scoring non certifiées |
+| Changement stratégique CPU | Non porté | ShouldSwitch absent |
+| Meilleur remplaçant CPU | Non porté | Premier candidat admissible encore utilisé |
+| Objets du dresseur | Non porté | ShouldUseItem absent |
+| AI_CalcDmg / TypeCalc | Adaptation partielle | Aucun oracle de combat complet |
+| Moteur commun | Jouable, incomplet | Capacités rares, états, talents, objets, séquence RNG encore incomplets |
+| Chefs et installations | Incomplets/absents | Pas de validation globale |
+
+La matrice détaillée historique est conservée dans IA_CONFORMITE.md. Aucun taux « 100 % fidèle » n&#x27;est revendiqué.
+
+## Tests et conservation
+
+73 tests JavaScript et 7 tests Python réussis (80 au total). Commandes : node --test tests/*.test.mjs ; python3 -m unittest discover -s tests -p &#x27;test_*.py&#x27;. Tests existants de sauvegardes, révisions concurrentes, équipes, restrictions, K.O., Solo/Duo/Multi et portage conservés. Les nouveaux tests couvrent les références arithmétiques, critique, Herbe Blanche, Relais, Cognobidon/Vantardise, vitesse et invariance des animations.
+
+Contrôle navigateur sur une largeur de 360 px : reprise d&#x27;une run Duo, fiche tactile, options persistantes et absence de débordement horizontal. Ce contrôle ne vaut pas un test matériel sur Samsung Galaxy S22 ni une validation de toutes les interactions.
+
+Sauvegardes locales existantes conservées, schéma inchangé ; options hors run. Une copie des sources avant modification a été créée. Les données du navigateur de production restent locales à l&#x27;utilisateur et n&#x27;ont pas été exportées par cette exécution. Les états des installations absentes ne peuvent pas encore être sauvegardés.
+
+Les sources complètes sont versionnées dans le dépôt du Site et livrées en ZIP. La recherche GitHub n&#x27;a identifié aucun dépôt cible accessible en écriture ; cette livraison ne prétend donc pas avoir synchronisé un dépôt GitHub personnel. Studio des Champions absent des sources auditées.
+</pre></html>
