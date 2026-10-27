@@ -46,8 +46,8 @@ function moveName(key){return D.moveData[key]?.name||key.replaceAll('_',' ')}
 function sprite(key,back=false){let code=D.species[key]?.sprite||key.toLowerCase().replaceAll('_','');let path=`https://play.pokemonshowdown.com/sprites/${back?'gen5ani-back':'gen5ani'}/${code}.gif`;
  return `<img class="pokemon-img" src="${path}" data-code="${escapeHTML(code)}" data-side="${back?'back':'front'}" data-tried="1" alt="${escapeHTML(nameOf(key))}" loading="lazy">`}
 function spriteFallback(root=document){root.querySelectorAll('.pokemon-img:not([data-bound])').forEach(img=>{img.dataset.bound='1';img.addEventListener('error',()=>{let step=+img.dataset.tried;img.dataset.tried=String(step+1);let code=encodeURIComponent(img.dataset.code),back=img.dataset.side==='back';if(step===0)img.src=`https://play.pokemonshowdown.com/sprites/${back?'gen5ani-back':'gen5ani'}/${code}.gif`;else if(step===1)img.src=`https://play.pokemonshowdown.com/sprites/${back?'gen5-back':'gen5'}/${code}.png`;else{img.style.opacity='.05';img.onerror=null}});});}
-function record(){return state.records[(state.facility||'tower')+':'+state.mode+':'+state.levelMode]||{current:0,best:0,silver:false,gold:false}}
-function saveRecord(result){const key=(state.facility||'tower')+':'+state.mode+':'+state.levelMode,r=record();if(result==='won'){r.current=engine.streak+1;r.best=Math.max(r.best,r.current);if(state.mode==='single'){if(r.current===35)r.silver=true;if(r.current===70)r.gold=true;}}else r.current=0;state.records[key]=r;}
+function record(){return state.records[(state.facility==='factory'?'factory:':'')+state.mode+':'+state.levelMode]||{current:0,best:0,silver:false,gold:false}}
+function saveRecord(result){const key=(state.facility==='factory'?'factory:':'')+state.mode+':'+state.levelMode,r=record();if(result==='won'){r.current=engine.streak+1;r.best=Math.max(r.best,r.current);if(state.mode==='single'){if(r.current===35)r.silver=true;if(r.current===70)r.gold=true;}}else r.current=0;state.records[key]=r;}
 function nav(target){presenter?.cancel();if(target!=='battle'&&engine){saveBattleSession();engine=null;activeRun=null;actions={};}if(target==='battle'&&!engine){notify('Choisis une équipe et lance le combat.');return}screen=target;document.body.dataset.screen=target;$$('.screen').forEach(el=>el.classList.toggle('hidden',el.id!==target));$$('[data-go]').forEach(el=>el.classList.toggle('active',el.dataset.go===target));if(target==='mode')renderMode();if(target==='team')renderTeam();if(target==='battle')renderBattle();window.scrollTo({top:0,behavior:'instant'});}
 function options(keys,selected,format=x=>x){return keys.map(key=>`<option value="${escapeHTML(key)}" ${key===selected?'selected':''}>${escapeHTML(format(key))}</option>`).join('')}
 function firstAvailable(){return Object.keys(D.sets).find(k=>!state.team.some(s=>s.species===k))}
@@ -72,6 +72,7 @@ function saveEdit(){let p=deepCopy(editing);p.ability=$('[data-field=ability]').
 function partner(){if(state.mode!=='link')return undefined;return (state.partner||[]).map(setFor)}
 async function begin(continuing=false){
  if(storageFailed)return;const run=continuing&&state.runs.find(r=>r.id===activeRun);const isFactory=(run?.facility||state.facility)==='factory';const team=run?(run.factory?.team||run.team):isFactory?factorySelection.map(i=>factoryPool[i]):state.team;
+ if(isFactory&&!run&&factorySelection.length!==3){notify('Sélectionne trois Pokémon de location.');return;}
  const errors=validateTeam(team,state.mode,state.levelMode,D);if(errors.length){if(!isFactory)nav('team');notify(errors[0]);return;}
  try{
   if(run&&run.engine.status!=='won')throw Error('Seul un défi victorieux peut continuer.');
