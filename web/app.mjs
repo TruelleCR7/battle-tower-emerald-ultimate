@@ -144,7 +144,7 @@ function renderFactoryDraft(){
  $('#partner-box').classList.add('hidden');
  if(!factoryPool.length){try{factoryPool=rentalPool(D,{levelMode:state.levelMode});}catch(e){$('#team-list').innerHTML='<p>'+escapeHTML(e.message)+'</p>';$('#start').disabled=true;return;}}
  $('#team-list').innerHTML='<p>Sélectionne 3 Pokémon parmi les 6 proposés. Tu pourras échanger après chaque victoire.</p><div class="bench-list">'+factoryPool.map((p,i)=>'<button class="bench-card '+(factorySelection.includes(i)?'chosen':'')+'" data-rental="'+i+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b> · '+escapeHTML(p.item||'NONE')+' · '+escapeHTML(p.moves.map(moveName).join(' / '))+(factorySelection.includes(i)?' ✓':'')+'</button>').join('')+'</div><button id="factory-reroll" class="btn">AUTRES LOCATIONS</button>';
- $('[data-rental]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.rental);factorySelection=factorySelection.includes(i)?factorySelection.filter(x=>x!==i):factorySelection.length<3?[...factorySelection,i]:factorySelection;renderFactoryDraft();});
+ $$('[data-rental]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.rental);factorySelection=factorySelection.includes(i)?factorySelection.filter(x=>x!==i):factorySelection.length<3?[...factorySelection,i]:factorySelection;renderFactoryDraft();});
  $('#factory-reroll').onclick=()=>{factoryPool=[];factorySelection=[];renderFactoryDraft();};
  $('#validation').textContent=factorySelection.length+'/3 POKÉMON DE LOCATION SÉLECTIONNÉS';
  $('#validation').classList.remove('error');
@@ -162,8 +162,8 @@ function renderFactoryExchange(run){
  const fac=run.factory;
  const card=(p,i,kind,selected)=>'<button class="bench-card '+(selected?'chosen':'')+'" data-'+kind+'="'+i+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b> · '+escapeHTML(p.item||'NONE')+(selected?' ✓':'')+'</button>';
  $('#battle-controls').innerHTML='<div class="terminal"><h3>USINE · ÉCHANGE APRÈS VICTOIRE</h3><p>Choisis un Pokémon adverse et celui de ton équipe à remplacer, ou passe.</p><h3>POKÉMON ADVERSAIRES</h3><div class="bench-list">'+fac.offers.map((p,i)=>card(p,i,'offer',factorySwap.take===i)).join('')+'</div><h3>TON ÉQUIPE</h3><div class="bench-list">'+fac.team.map((p,i)=>card(p,i,'give',factorySwap.give===i)).join('')+'</div><button id="factory-pass" class="btn">PASSER ▶</button> <button id="factory-confirm" class="btn primary" '+(factorySwap.take==null||factorySwap.give==null?'disabled':'')+'>ÉCHANGER ▶</button></div>';
- $('[data-offer]').forEach(b=>b.onclick=()=>{factorySwap.take=Number(b.dataset.offer);renderFactoryExchange(run);});
- $('[data-give]').forEach(b=>b.onclick=()=>{factorySwap.give=Number(b.dataset.give);renderFactoryExchange(run);});
+ $$('[data-offer]').forEach(b=>b.onclick=()=>{factorySwap.take=Number(b.dataset.offer);renderFactoryExchange(run);});
+ $$('[data-give]').forEach(b=>b.onclick=()=>{factorySwap.give=Number(b.dataset.give);renderFactoryExchange(run);});
  const finish=async choice=>{try{run.factory=resolveFactoryExchange(run.factory,choice);run.team=deepCopy(run.factory.team);factorySwap={};await saveBattleSession();await begin(true);}catch(e){notify(e.message);}};
  $('#factory-pass').onclick=()=>finish('pass');
  $('#factory-confirm').onclick=()=>finish(factorySwap);
