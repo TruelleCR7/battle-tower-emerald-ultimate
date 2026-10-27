@@ -3,6 +3,7 @@ import {BattlePresenter,preferences} from './battle-presentation.mjs';
 import {RunStore,migrateState,createRun,captureRun,contextKey} from './runs.mjs';
 import {TYPES,typeName,percent,targetPlan,groupedLog,statChanges} from './battle-ui.mjs';
 import {officialSet} from './frontier.mjs';
+import {rentalPool,beginFactoryDraft,proposeFactoryExchange,resolveFactoryExchange} from './factory.mjs';
 import {exportSave,validateImport,restoreEngine} from './storage.mjs';
 import {TowerEngine,validateTeam,statsFor} from './engine.mjs';
 const $=sel=>document.querySelector(sel), $$=sel=>[...document.querySelectorAll(sel)];
@@ -13,6 +14,7 @@ const required={single:3,double:4,multi:2,link:2};
 let D,state={mode:'single',levelMode:'50',team:[],partner:['MILOTIC','SNORLAX'],records:{}},screen='mode',engine=null,actions={},editorSlot=-1,editing=null;
 const NATURES=['HARDY','LONELY','BRAVE','ADAMANT','NAUGHTY','BOLD','DOCILE','RELAXED','IMPISH','LAX','TIMID','HASTY','SERIOUS','JOLLY','NAIVE','MODEST','MILD','QUIET','BASHFUL','RASH','CALM','GENTLE','SASSY','CAREFUL','QUIRKY'];
 let presenter,presenting=false;
+let factoryPool=[],factorySelection=[],factorySwap={};
 let repository,revision=0,saveQueue=Promise.resolve(),storageFailed=false,activeRun=null,switchPrompt=null;
 function store(){
  const snapshot=deepCopy(state);
@@ -25,7 +27,7 @@ function saveBattleSession(){
 }
 function restoreBattleSession(id){
  const saved=state.runs.find(r=>r.id===id);if(!saved)return false;
- try{engine=restoreEngine(D,saved,TowerEngine);activeRun=id;state.mode=saved.mode;state.levelMode=saved.levelMode;actions=deepCopy(saved.actions||{});switchPrompt=null;nav('battle');notify('Défi repris avec son équipe et ses décisions.');return true;}
+ try{engine=restoreEngine(D,saved,TowerEngine);activeRun=id;state.mode=saved.mode;state.levelMode=saved.levelMode;state.facility=saved.facility||'tower';actions=deepCopy(saved.actions||{});switchPrompt=null;nav('battle');notify('Défi repris avec son équipe et ses décisions.');return true;}
  catch(err){notify('Reprise impossible : '+err.message);return false;}
 }
 function badges(species){return `<span class="type-badges">${(D.species[species]?.types||[]).map(t=>`<span class="type-badge" style="background:${TYPES[t]?.[1]||'#ccc'}">${typeName(t)}</span>`).join('')}</span>`;}
@@ -44,15 +46,15 @@ function moveName(key){return D.moveData[key]?.name||key.replaceAll('_',' ')}
 function sprite(key,back=false){let code=D.species[key]?.sprite||key.toLowerCase().replaceAll('_','');let path=`https://play.pokemonshowdown.com/sprites/${back?'gen5ani-back':'gen5ani'}/${code}.gif`;
  return `<img class="pokemon-img" src="${path}" data-code="${escapeHTML(code)}" data-side="${back?'back':'front'}" data-tried="1" alt="${escapeHTML(nameOf(key))}" loading="lazy">`}
 function spriteFallback(root=document){root.querySelectorAll('.pokemon-img:not([data-bound])').forEach(img=>{img.dataset.bound='1';img.addEventListener('error',()=>{let step=+img.dataset.tried;img.dataset.tried=String(step+1);let code=encodeURIComponent(img.dataset.code),back=img.dataset.side==='back';if(step===0)img.src=`https://play.pokemonshowdown.com/sprites/${back?'gen5ani-back':'gen5ani'}/${code}.gif`;else if(step===1)img.src=`https://play.pokemonshowdown.com/sprites/${back?'gen5-back':'gen5'}/${code}.png`;else{img.style.opacity='.05';img.onerror=null}});});}
-function record(){return state.records[state.mode+':'+state.levelMode]||{current:0,best:0,silver:false,gold:false}}
-function saveRecord(result){const key=state.mode+':'+state.levelMode,r=record();if(result==='won'){r.current=engine.streak+1;r.best=Math.max(r.best,r.current);if(state.mode==='single'){if(r.current===35)r.silver=true;if(r.current===70)r.gold=true;}}else r.current=0;state.records[key]=r;}
+function record(){return state.records[(state.facility||'tower')+':'+state.mode+':'+state.levelMode]||{current:0,best:0,silver:false,gold:false}}
+function saveRecord(result){const key=(state.facility||'tower')+':'+state.mode+':'+state.levelMode,r=record();if(result==='won'){r.current=engine.streak+1;r.best=Math.max(r.best,r.current);if(state.mode==='single'){if(r.current===35)r.silver=true;if(r.current===70)r.gold=true;}}else r.current=0;state.records[key]=r;}
 function nav(target){presenter?.cancel();if(target!=='battle'&&engine){saveBattleSession();engine=null;activeRun=null;actions={};}if(target==='battle'&&!engine){notify('Choisis une équipe et lance le combat.');return}screen=target;document.body.dataset.screen=target;$$('.screen').forEach(el=>el.classList.toggle('hidden',el.id!==target));$$('[data-go]').forEach(el=>el.classList.toggle('active',el.dataset.go===target));if(target==='mode')renderMode();if(target==='team')renderTeam();if(target==='battle')renderBattle();window.scrollTo({top:0,behavior:'instant'});}
 function options(keys,selected,format=x=>x){return keys.map(key=>`<option value="${escapeHTML(key)}" ${key===selected?'selected':''}>${escapeHTML(format(key))}</option>`).join('')}
 function firstAvailable(){return Object.keys(D.sets).find(k=>!state.team.some(s=>s.species===k))}
 function setFor(key){if(D.sets[key])return deepCopy(D.sets[key]);let p=D.species[key];if(!p)return null;const move=(D.learnsets[key]||[]).slice(0,4);
  return {species:key,ability:p.abilities[0],item:'NONE',moves:move,level:50,nature:'HARDY',evs:[252,0,0,0,252,6],ivs:[31,31,31,31,31,31],role:'Personnalisé'}}
-function renderMode(){$('#resume-game').classList.add('hidden');let html='';for(const [key,[label,desc,symbol]] of Object.entries(MODES)){html+=`<button class="format ${state.mode===key?'selected':''}" data-mode="${key}" ${key==='network'?'disabled':''}><span class="glyph">${symbol}</span><strong>${label}</strong><small>${desc}</small></button>`;}$('#formats').innerHTML=html;$$('[data-mode]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;state.team=state.team.slice(0,required[state.mode]);store();renderMode();});$$('[name=lvl]').forEach(i=>{i.checked=i.value===state.levelMode;i.onchange=()=>{state.levelMode=i.value;store();renderMode();}});let r=record();$('#record').textContent=`RECORD : ${r.best||0} VICTOIRES  ${r.silver?' · ARGENT ✓':''}${r.gold?' · OR ✓':''}`;renderRuns();}
-function renderTeam(){const groups=Object.entries(D.teams||{}).filter(([,t])=>t.mode===state.mode||(state.mode==='link'&&t.mode==='multi'));$('#presets').innerHTML=groups.map(([id,t])=>`<option value="${escapeHTML(id)}">${escapeHTML(t.name)} — ${escapeHTML(t.description)}</option>`).join('');$('#use-preset').disabled=!groups.length;
+function renderMode(){const isFactory=state.facility==='factory';$('#facility-select').value=isFactory?'factory':'tower';$('#formats').classList.toggle('hidden',isFactory);$('#resume-game').classList.add('hidden');let html='';for(const [key,[label,desc,symbol]] of Object.entries(MODES)){html+=`<button class="format ${state.mode===key?'selected':''}" data-mode="${key}" ${key==='network'?'disabled':''}><span class="glyph">${symbol}</span><strong>${label}</strong><small>${desc}</small></button>`;}$('#formats').innerHTML=html;$$('[data-mode]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;state.team=state.team.slice(0,required[state.mode]);store();renderMode();});$$('[name=lvl]').forEach(i=>{i.checked=i.value===state.levelMode;i.onchange=()=>{state.levelMode=i.value;store();renderMode();}});let r=record();$('#record').textContent=`RECORD : ${r.best||0} VICTOIRES  ${r.silver?' · ARGENT ✓':''}${r.gold?' · OR ✓':''}`;renderRuns();}
+function renderTeam(){if(state.facility==='factory'){renderFactoryDraft();return;}$('#team').querySelector('.section-title h2').textContent='CONSTRUIS TON ÉQUIPE';$('#team').querySelector('.preset-area').classList.remove('hidden');$('#team').querySelector('.team-library').classList.remove('hidden');$('#team').querySelector('.rules-panel').classList.remove('hidden');$('#start').textContent='DÉMARRER LA TOUR ▶';const groups=Object.entries(D.teams||{}).filter(([,t])=>t.mode===state.mode||(state.mode==='link'&&t.mode==='multi'));$('#presets').innerHTML=groups.map(([id,t])=>`<option value="${escapeHTML(id)}">${escapeHTML(t.name)} — ${escapeHTML(t.description)}</option>`).join('');$('#use-preset').disabled=!groups.length;
  let html='';const need=required[state.mode];for(let i=0;i<need;i++){const p=state.team[i];if(p){html+=`<div class="slot">${sprite(p.species)}<div class="slot-body"><b>${i+1}. ${escapeHTML(nameOf(p.species))}</b>${badges(p.species)}<small>${escapeHTML(p.role||'Set stratégique')} · ${escapeHTML(p.ability)}<br>${escapeHTML(p.item)} · ${p.moves.map(moveName).slice(0,2).join(' / ')}</small></div><div class="slot-actions"><button class="btn" data-edit="${i}">MODIFIER</button>${i?`<button data-up="${i}" aria-label="Monter ce Pokémon">↑</button>`:''}</div></div>`;}else html+=`<button class="slot empty-slot" data-edit="${i}"><b>+ AJOUTER UN POKÉMON</b></button>`;}
  $('#team-list').innerHTML=html;$$('[data-edit]').forEach(b=>b.onclick=()=>openEdit(+b.dataset.edit));$$('[data-up]').forEach(b=>b.onclick=()=>{let i=+b.dataset.up;[state.team[i-1],state.team[i]]=[state.team[i],state.team[i-1]];store();renderTeam()});
  if(state.mode==='link'){$('#partner-box').classList.remove('hidden');$('#partner-box').innerHTML=`<h3>ÉQUIPE DU JOUEUR 2</h3><p>Deux Pokémon contrôlés par un second joueur.</p>${[0,1].map(i=>`<label>POKÉMON ${i+1}<select data-partner="${i}">${options(Object.keys(D.sets),state.partner[i],nameOf)}</select></label>`).join('')}`;$$('[data-partner]').forEach(el=>el.onchange=()=>{state.partner[+el.dataset.partner]=el.value;store();});}else $('#partner-box').classList.add('hidden');
@@ -69,13 +71,13 @@ function renderEdit(){const p=editing;$('#species-search').value='';$('#species-
 function saveEdit(){let p=deepCopy(editing);p.ability=$('[data-field=ability]').value;p.item=$('[data-field=item]').value;p.nature=$('[data-field=nature]').value;p.level=Number($('[data-field=level]').value);p.moves=[0,1,2,3].map(i=>$(`[data-field=move${i}]`).value);p.evs=$$('#edit-advanced [data-ev]').map(e=>Number(e.value));p.ivs=$$('#edit-advanced [data-iv]').map(e=>Number(e.value));if(new Set(p.moves).size!==p.moves.length){$('#edit-error').textContent='Chaque capacité doit être différente.';return;}if(p.evs.some(x=>!Number.isInteger(x)||x<0||x>255)||p.evs.reduce((a,b)=>a+b,0)>510){$('#edit-error').textContent='EV : 0 à 255/stat et 510 maximum au total.';return;}if(p.ivs.some(x=>!Number.isInteger(x)||x<0||x>31)){$('#edit-error').textContent='IV : 0 à 31.';return;}const candidate=[...state.team];candidate[editorSlot]=p;const errs=validateTeam(candidate,state.mode,state.levelMode,D).filter(x=>!x.includes('Ce mode nécessite'));if(errs.length){$('#edit-error').textContent=errs.join(' · ');return;}state.team[editorSlot]=p;store();$('#edit-layer').classList.add('hidden');renderTeam();}
 function partner(){if(state.mode!=='link')return undefined;return (state.partner||[]).map(setFor)}
 async function begin(continuing=false){
- if(storageFailed)return;const run=continuing&&state.runs.find(r=>r.id===activeRun);const team=run?run.team:state.team;
- const errors=validateTeam(team,state.mode,state.levelMode,D);if(errors.length){nav('team');notify(errors[0]);return;}
+ if(storageFailed)return;const run=continuing&&state.runs.find(r=>r.id===activeRun);const isFactory=(run?.facility||state.facility)==='factory';const team=run?(run.factory?.team||run.team):isFactory?factorySelection.map(i=>factoryPool[i]):state.team;
+ const errors=validateTeam(team,state.mode,state.levelMode,D);if(errors.length){if(!isFactory)nav('team');notify(errors[0]);return;}
  try{
   if(run&&run.engine.status!=='won')throw Error('Seul un défi victorieux peut continuer.');
   const nextEngine=new TowerEngine(D,{mode:state.mode,levelMode:state.levelMode,team:deepCopy(team),streak:run?run.victories:0,trainerHistory:run?.trainerHistory||[]});
   if(run){run.pastBattles.push({number:run.engine.streak+1,trainer:run.engine.trainer,log:run.engine.log});engine=nextEngine;actions={};}
-  else{engine=nextEngine;const created=createRun(state,engine);activeRun=created.id;state.runs.push(created);actions={};}
+  else{engine=nextEngine;const created=createRun(state,engine);if(isFactory){created.facility='factory';created.name='Usine · '+new Date().toISOString().slice(0,10);created.factory=beginFactoryDraft(factoryPool,factorySelection);created.team=deepCopy(created.factory.team);}activeRun=created.id;state.runs.push(created);actions={};}
   switchPrompt=null;await saveBattleSession();nav('battle');
  }catch(e){notify(e.message);}
 }
@@ -101,12 +103,13 @@ function renderReplacement(){
  $$('[data-replace-to]').forEach(b=>b.onclick=()=>{switchPrompt={actor:r.fainted,to:b.dataset.replaceTo};renderBattle();});
  if(selected){$('#cancel-replacement').onclick=()=>{switchPrompt=null;renderBattle();};$('#confirm-replacement').onclick=async()=>{
   if(storageFailed)return;$('#confirm-replacement').disabled=true;
-  try{await saveQueue;const backup=deepCopy(state.runs.find(x=>x.id===activeRun));try{const result=engine.replaceFainted(r.fainted,selected.id);actions={};switchPrompt=null;if(result.status!=='active')saveRecord(result.status);await saveBattleSession();renderBattle();}catch(error){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw error;}}catch(error){notify(error.message);if(!storageFailed)renderBattle();}
+  try{await saveQueue;const backup=deepCopy(state.runs.find(x=>x.id===activeRun));try{const result=engine.replaceFainted(r.fainted,selected.id);actions={};switchPrompt=null;if(result.status!=='active')saveRecord(result.status);if(result.status==='won')prepareFactoryOffers();await saveBattleSession();renderBattle();}catch(error){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw error;}}catch(error){notify(error.message);if(!storageFailed)renderBattle();}
  };}return true;
 }
-function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state.runs.find(r=>r.id===activeRun);$('#battle-mode').textContent=MODES[state.mode][0]+' · NIVEAU '+(state.levelMode==='50'?'50':'LIBRE');$('#battle-heading').textContent=snap.trainer;$('#streak-counter').textContent=`${snap.streak} VICTOIRE(S) · ${snap.round}/7`;
+function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state.runs.find(r=>r.id===activeRun);$('#battle-mode').textContent=(run?.facility==='factory'?'USINE · ':MODES[state.mode][0]+' · ')+'NIVEAU +(state.levelMode==='50'?'50':'LIBRE');$('#battle-heading').textContent=snap.trainer;$('#streak-counter').textContent=`${snap.streak} VICTOIRE(S) · ${snap.round}/7`;
  const enemy=engine.active('opponent'),own=engine.active('player');$('#battle-arena').innerHTML=`<div class="battle-row enemy ${enemy.length>1?'double':''}">${enemy.map(m=>combatMon(m,false)).join('')}</div><div class="battle-row player ${own.length>1?'double':''}">${own.map(m=>combatMon(m,true)).join('')}</div>`;
  $('#battle-dialogue').innerHTML=logHTML(engine.log.filter(e=>e.turn===engine.turn));$('#battle-log').innerHTML='<h2>Combat '+(engine.streak+1)+'</h2>'+logHTML(engine.log)+(run.pastBattles||[]).slice().reverse().map(b=>`<details><summary>Combat ${b.number} · ${escapeHTML(b.trainer)}</summary>${logHTML(b.log)}</details>`).join('');
+ if(snap.status==='won'&&run?.facility==='factory'){renderFactoryExchange(run);spriteFallback($('#battle-board'));return;}
  if(snap.status!=='active'){$('#battle-controls').innerHTML=`<div class="terminal"><h3>${snap.status==='won'?'VICTOIRE !':'DÉFAITE !'}</h3><p>${snap.status==='won'?'Équipe restaurée au prochain combat.':'Fin de ce défi. Son historique reste disponible.'}</p>${snap.status==='won'?'<button class="btn primary" id="next-fight">COMBAT SUIVANT ▶</button>':'<button class="btn primary" id="return-runs">MES DÉFIS</button>'}</div>`;if($('#next-fight'))$('#next-fight').onclick=()=>begin(true);if($('#return-runs'))$('#return-runs').onclick=()=>nav('mode');spriteFallback($('#battle-arena'));return;}
  if(engine.pendingReplacements?.length&&renderReplacement()){spriteFallback($('#battle-board'));return;}
  const controllable=own.filter(m=>m.owner==='human'||m.owner==='human2');let html='';for(const [index,mon] of controllable.entries()){
@@ -130,12 +133,48 @@ function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state
  $('#commit-turn').onclick=async()=>{if(storageFailed||presenting)return;$('#commit-turn').disabled=true;try{await saveQueue;const backup=deepCopy(state.runs.find(r=>r.id===activeRun));try{const oldLogLength=engine.log.length;const result=engine.turnActions(Object.values(actions));const visualEvents=engine.log.slice(0,engine.log.length-oldLogLength).reverse();actions={};if(result.status!=='active')saveRecord(result.status);await saveBattleSession();renderBattle();presenting=true;$('#battle-controls').inert=true;try{await presenter.play(visualEvents,preferences(state));}finally{presenting=false;$('#battle-controls').inert=false;}}catch(e){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw e;}}catch(e){notify(e.message);if(!storageFailed)renderBattle();}};
  spriteFallback($('#battle-board'));
 }
+
+function renderFactoryDraft(){
+ const section=$('#team');
+ section.querySelector('.section-title h2').textContent='CHOISIS TES POKÉMON DE LOCATION';
+ section.querySelector('.preset-area').classList.add('hidden');
+ section.querySelector('.team-library').classList.add('hidden');
+ section.querySelector('.rules-panel').classList.add('hidden');
+ $('#partner-box').classList.add('hidden');
+ if(!factoryPool.length){try{factoryPool=rentalPool(D,{levelMode:state.levelMode});}catch(e){$('#team-list').innerHTML='<p>'+escapeHTML(e.message)+'</p>';$('#start').disabled=true;return;}}
+ $('#team-list').innerHTML='<p>Sélectionne 3 Pokémon parmi les 6 proposés. Tu pourras échanger après chaque victoire.</p><div class="bench-list">'+factoryPool.map((p,i)=>'<button class="bench-card '+(factorySelection.includes(i)?'chosen':'')+'" data-rental="'+i+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b> · '+escapeHTML(p.item||'NONE')+' · '+escapeHTML(p.moves.map(moveName).join(' / '))+(factorySelection.includes(i)?' ✓':'')+'</button>').join('')+'</div><button id="factory-reroll" class="btn">AUTRES LOCATIONS</button>';
+ $('[data-rental]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.rental);factorySelection=factorySelection.includes(i)?factorySelection.filter(x=>x!==i):factorySelection.length<3?[...factorySelection,i]:factorySelection;renderFactoryDraft();});
+ $('#factory-reroll').onclick=()=>{factoryPool=[];factorySelection=[];renderFactoryDraft();};
+ $('#validation').textContent=factorySelection.length+'/3 POKÉMON DE LOCATION SÉLECTIONNÉS';
+ $('#validation').classList.remove('error');
+ $('#start').disabled=factorySelection.length!==3;
+ $('#start').textContent='DÉMARRER L’USINE ▶';
+}
+function prepareFactoryOffers(){
+ const run=state.runs.find(r=>r.id===activeRun);
+ if(!run||run.facility!=='factory'||run.factory?.phase==='exchange')return;
+ const team=engine.opponent.party.slice(0,3).map(p=>({species:p.species,item:p.item||'NONE',nature:p.nature,moves:[...p.moves],evs:[...p.evs],ivs:[...p.ivs],ability:p.ability,level:p.level,role:'Location adversaire'}));
+ run.factory=proposeFactoryExchange(run.factory,team);
+}
+function renderFactoryExchange(run){
+ if(run.factory?.phase!=='exchange'){const opponent=run.engine?.opponent?.party||[];if(opponent.length>=3){const offers=opponent.slice(0,3).map(p=>({species:p.species,item:p.item||'NONE',nature:p.nature,moves:[...p.moves],evs:[...p.evs],ivs:[...p.ivs],ability:p.ability,level:p.level}));run.factory=proposeFactoryExchange(run.factory,offers);}else{notify('Propositions adverses indisponibles.');return;}}
+ const fac=run.factory;
+ const card=(p,i,kind,selected)=>'<button class="bench-card '+(selected?'chosen':'')+'" data-'+kind+'="'+i+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b> · '+escapeHTML(p.item||'NONE')+(selected?' ✓':'')+'</button>';
+ $('#battle-controls').innerHTML='<div class="terminal"><h3>USINE · ÉCHANGE APRÈS VICTOIRE</h3><p>Choisis un Pokémon adverse et celui de ton équipe à remplacer, ou passe.</p><h3>POKÉMON ADVERSAIRES</h3><div class="bench-list">'+fac.offers.map((p,i)=>card(p,i,'offer',factorySwap.take===i)).join('')+'</div><h3>TON ÉQUIPE</h3><div class="bench-list">'+fac.team.map((p,i)=>card(p,i,'give',factorySwap.give===i)).join('')+'</div><button id="factory-pass" class="btn">PASSER ▶</button> <button id="factory-confirm" class="btn primary" '+(factorySwap.take==null||factorySwap.give==null?'disabled':'')+'>ÉCHANGER ▶</button></div>';
+ $('[data-offer]').forEach(b=>b.onclick=()=>{factorySwap.take=Number(b.dataset.offer);renderFactoryExchange(run);});
+ $('[data-give]').forEach(b=>b.onclick=()=>{factorySwap.give=Number(b.dataset.give);renderFactoryExchange(run);});
+ const finish=async choice=>{try{run.factory=resolveFactoryExchange(run.factory,choice);run.team=deepCopy(run.factory.team);factorySwap={};await saveBattleSession();await begin(true);}catch(e){notify(e.message);}};
+ $('#factory-pass').onclick=()=>finish('pass');
+ $('#factory-confirm').onclick=()=>finish(factorySwap);
+}
+
 async function main(){let response=await fetch('./data/catalog.json');if(!response.ok)throw new Error('Catalogue introuvable');D=await response.json();
  try{let raw=JSON.parse(localStorage.getItem(STORE)||localStorage.getItem(LEGACY_STORE)||'null');if(raw&&raw.mode&&Array.isArray(raw.team))state={...state,...raw};}catch{}
  repository=await new RunStore().open();const saved=await repository.load();revision=saved?.revision||0;state=saved?migrateState(saved.state):migrateState(state);if(!saved)await store();
  if(!MODES[state.mode]||state.mode==='network')state.mode='single';
  if(!state.team.length)state.team=['METAGROSS','SWAMPERT','LATIOS'].map(setFor).filter(Boolean);
- $('#version-label').textContent='v0.6.2 · PORTAGE EN COURS';
+ $('#version-label').textContent='v0.6.3 · USINE EN TEST';
+ $('#facility-select').onchange=e=>{state.facility=e.target.value;if(state.facility==='factory')state.mode='single';factoryPool=[];factorySelection=[];store();renderMode();};
  presenter=new BattlePresenter($('#battle-arena'));setupOptions();
  $('#battle-arena').onclick=e=>{const button=e.target.closest('[data-stat-info]');if(button)showStats(engine.get(button.dataset.statInfo));};
  setupLibrary();
