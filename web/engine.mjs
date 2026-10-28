@@ -271,13 +271,22 @@ export class TowerEngine {
   if(effect==='MIST'){(this.mist??={})[this.sideOf(m)]=5;this.write('Brume protège des baisses de statistiques.');return true;}
   return false;
  }
- inflict(m,status){
+ inflict(m,status,source=null){
   if(m.status)return false;
   const ty=this.data.species[m.species].types;
   if((status==='burn'&&ty.includes('FIRE'))||(['poison','toxic'].includes(status)&&(ty.includes('POISON')||ty.includes('STEEL')))||
     (status==='paralyze'&&m.ability==='LIMBER')||(status==='sleep'&&['INSOMNIA','VITAL_SPIRIT'].includes(m.ability))||(status==='burn'&&m.ability==='WATER_VEIL')||(['poison','toxic'].includes(status)&&m.ability==='IMMUNITY')||(status==='freeze'&&(ty.includes('ICE')||m.ability==='MAGMA_ARMOR')))return false;
   m.status=status;if(status==='sleep')m.sleep=2+randInt(this.rng,3);if(status==='toxic')m.toxic=0;
   this.write(`${m.name} subit ${statusTranslation[status]} !`);
+  // Gen III Synchro reflects an opponent-caused status before the curing berry activates.
+  // Reflection deliberately has no source to prevent a second reflection loop.
+  if(m.ability==='SYNCHRONIZE'&&source&&source!==m&&
+     this.sideOf(source)!==this.sideOf(m)&&source.hp>0&&
+     ['burn','paralyze','poison','toxic'].includes(status)){
+    const reflected=status==='toxic'?'poison':status;
+    this.write(`${m.name} active Synchro !`);
+    this.inflict(source,reflected);
+  }
   this.useBerry(m);return true;
  }
  useBerry(m){
@@ -380,9 +389,9 @@ export class TowerEngine {
   if(this.statMove(m,t,move))return;
   if(effectiveness(move.type,t,this.data)===0&&['paralyze','toxic','poison'].includes(move.effect)){this.write('Cible immunisée.');return;}
   switch(move.effect){
-   case 'burn':this.inflict(t,'burn');break;
-   case 'paralyze':this.inflict(t,'paralyze');break;
-   case 'toxic':this.inflict(t,'toxic');break;
+   case 'burn':this.inflict(t,'burn',m);break;
+   case 'paralyze':this.inflict(t,'paralyze',m);break;
+   case 'toxic':this.inflict(t,'toxic',m);break;
    case 'sleep':this.inflict(t,'sleep');break;
    case 'seed':if(!this.data.species[t.species].types.includes('GRASS')){t.seeded=true;this.write(`${t.name} est vampigrainé.`);}break;
    case 'whirlwind':{const r=this.bench(this.sideOf(t),t.owner);if(r.length)this.switchMon(t,r[randInt(this.rng,r.length)].id);break;}
@@ -395,21 +404,21 @@ export class TowerEngine {
   if(ability==='ROUGH_SKIN'){
    this.hpLoss(attacker,Math.max(1,Math.floor(attacker.maxHp/16)),'Peau Dure');
   }else if(ability==='STATIC'&&this.rng()<.3){
-   this.inflict(attacker,'paralyze');
+   this.inflict(attacker,'paralyze',defender);
   }else if(ability==='POISON_POINT'&&this.rng()<.3){
-   this.inflict(attacker,'poison');
+   this.inflict(attacker,'poison',defender);
   }else if(ability==='FLAME_BODY'&&this.rng()<.3){
-   this.inflict(attacker,'burn');
-  }else if(ability==='EFFECT_SPORE'&&this.rng()<.3){
+   this.inflict(attacker,'burn',defender);
+  }else if(ability==='EFFECT_SPORE'&&this.rng()<.1){
    const effect=['poison','paralyze','sleep'][Math.floor(this.rng()*3)];
-   this.inflict(attacker,effect);
+   this.inflict(attacker,effect,defender);
   }
  }
  afterHit(m,t,move){if(t.hp<=0&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;const chance=Math.min(100,(move.secondaryChance||0)*(m.ability==='SERENE_GRACE'?2:1));
   if((Math.floor(this.rng()*65536)%100)>=Math.min(100,chance))return;
   if(t.ability==='SHIELD_DUST'&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;
   const e=move.originalEffect;
-  const status={BURN_HIT:'burn',FREEZE_HIT:'freeze',PARALYZE_HIT:'paralyze',THUNDER:'paralyze',POISON_HIT:'poison',TWINEEDLE:'poison'}[e];if(status)this.inflict(t,status);
+  const status={BURN_HIT:'burn',FREEZE_HIT:'freeze',PARALYZE_HIT:'paralyze',THUNDER:'paralyze',POISON_HIT:'poison',TWINEEDLE:'poison'}[e];if(status)this.inflict(t,status,m);
   const down={ATTACK_DOWN_HIT:'atk',DEFENSE_DOWN_HIT:'def',SPEED_DOWN_HIT:'spe',SPECIAL_ATTACK_DOWN_HIT:'spa',SPECIAL_DEFENSE_DOWN_HIT:'spd',ACCURACY_DOWN_HIT:'acc'}[e];if(down)this.modify(t,down,-1,m);
   if(e==='ATTACK_UP_HIT')this.modify(m,'atk',1);if(e==='DEFENSE_UP_HIT')this.modify(m,'def',1);
   if(e==='ALL_STATS_UP_HIT')for(const stat of ['atk','def','spa','spd','spe'])this.modify(m,stat,1);
