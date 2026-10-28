@@ -98,3 +98,13 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .dome-lead-option.chosen{border:3px solid #39795c;background:#c9e9b7;box-shadow:inset 0 0 0 2px #fff}
 .dome-lead-option small{font-size:10px;font-weight:800}
 @media(max-width:450px){.dome-lead-options{grid-template-columns:1fr}.dome-lead-option{flex-direction:row;justify-content:space-between}}
+
+/* Battle Dome: full 16-entrant elimination bracket. */
+.dome-tree{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:start;margin:14px 0 22px}
+.dome-tree-round{min-width:0;background:#e6eedf;border:2px solid #719486;padding:8px}
+.dome-tree-round h4{font-size:11px;margin:0 0 8px;color:#234d40}
+.dome-tree-pair{display:flex;flex-direction:column;border:1px solid #94aa9a;background:#fafbf3;margin:0 0 7px;font-size:10px}
+.dome-tree-pair span{padding:5px;overflow-wrap:anywhere}
+.dome-tree-pair span+span{border-top:1px solid #a2b5a5}
+.dome-tree-pair .dome-qualified{background:#b9e6a7;font-weight:900}
+@media(max-width:680px){.dome-tree{grid-template-columns:repeat(2,minmax(0,1fr))}}
