@@ -84,7 +84,7 @@ function roomView(){
   stage.querySelectorAll('[data-door]').forEach(el=>el.onclick=()=>pickDoor(+el.dataset.door));
  }else if(pike.phase==='event'){
   stage.innerHTML='<h3>ÉVÉNEMENT · '+esc(labels[pike.roomEvent])+'</h3><p>Un événement se déclenche dans cette salle.</p><button id="pike-event" class="btn primary">DÉCOUVRIR L’ÉVÉNEMENT</button>';
-  $('#pike-event').onclick=()=>{try{pikeResolveEvent(pike,save.party);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
+  $('#pike-event').onclick=()=>{try{pikeResolveEvent(pike,save.party,Math.random,D.moveData);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
  }else if(pike.phase==='resolved'){
   stage.innerHTML='<h3>SALLE TRAVERSÉE</h3><p>'+esc(pike.eventMessage||'Combat remporté !')+'</p><button id="pike-continue" class="btn primary">PASSER À LA SALLE SUIVANTE ▶</button>';
   $('#pike-continue').onclick=()=>{pikeFinishRoom(pike,save.party);persist();render();};
@@ -109,7 +109,7 @@ function combatView(){
    save.party=structuredClone(battle.player.party).map(p=>({...p,active:false}));
    save.pike.battleResolved=true;save.pike.phase='resolved';
    save.pike.eventMessage='Combat remporté !'+(save.pike.roomEvent==='hard_trainer'?' L’infirmière soigne ton équipe.':'');
-   if(save.pike.roomEvent==='hard_trainer')save.party.forEach(p=>{p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;});
+   if(save.pike.roomEvent==='hard_trainer')save.party.forEach(p=>{p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;p.pp=Object.fromEntries(Object.entries(p.pp).map(([k,v])=>[k,D.moveData[k]?.pp??v]));});
    battle=null;save.combat=null;persist();render();return;
   }
   if(snap.status==='lost'){
