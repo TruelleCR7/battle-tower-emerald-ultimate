@@ -142,7 +142,7 @@ function renderDomeScreen(run,snap){
  const chosen=Array.isArray(dome.chosen)?dome.chosen:[0,1];
  const options=preview&&dome.menu==='select'?'<div class="dome-lead-picker"><h3>CHOISIS TES DEUX POKÉMON</h3><p>Émeraude : inscris trois Pokémon au tournoi, mais sélectionne uniquement deux combattants par match. Le premier sera ton Lead.</p><div class="dome-lead-options">'+run.team.map((p,i)=>{const pos=chosen.indexOf(i);return '<button class="dome-lead-option '+(pos>=0?'chosen':'')+'" data-dome-pick="'+i+'" aria-pressed="'+(pos>=0)+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b><small>'+(pos===0?'★ LEAD':pos===1?'2e POKÉMON':'EN RÉSERVE')+'</small></button>';}).join('')+'</div></div>':'';
  const opponents=opponent?.team.map(p=>'<span class="dome-opponent">'+icon(p.species)+' '+escapeHTML(nameOf(p.species))+'</span>').join('')||'';
- const nextLabel=finished?'🏆 TOURNOI '+(dome.tournamentNumber||1)+' REMPORTÉ ! · '+(dome.tournamentsWon||0)+1+' TOURNOI(S) GAGNÉ(S)':snap.status==='lost'?'ÉLIMINÉ':snap.status==='won'?'VICTOIRE · QUALIFIÉ !':'';
+ const nextLabel=finished?'🏆 TOURNOI '+(dome.tournamentNumber||1)+' REMPORTÉ ! · ' +((dome.tournamentsWon||0)+1)+' TOURNOI(S) GAGNÉ(S)':snap.status==='lost'?'ÉLIMINÉ':snap.status==='won'?'VICTOIRE · QUALIFIÉ !':'';
  const controls=preview?'<h3>'+DOME_ROUNDS[round]+'</h3><p>ADVERSAIRE : <b>'+escapeHTML(opponent?.name||snap.trainer)+'</b></p><p>ÉQUIPE INSCRITE DE L’ADVERSAIRE</p><div class="dome-opponents">'+opponents+'</div>'+(dome.menu==='select'?options+'<button class="btn primary" id="dome-fight" '+(chosen.length!==2?'disabled':'')+'>COMMENCER LE MATCH ▶</button>':''):nextLabel+'<div>'+(finished?'<button class="btn primary" id="dome-next-tournament">TOURNOI SUIVANT ▶</button> ':'')+'<button class="btn '+(finished?'':'primary')+'" id="'+(snap.status==='won'&&!finished?'dome-next':'dome-finish')+'">'+(snap.status==='won'&&!finished?'TABLEAU DU TOUR SUIVANT ▶':'MES DÉFIS')+'</button></div>';
  $('#battle-controls').innerHTML='<section class="terminal dome-panel"><h3>DÔME DE COMBAT · 16 PARTICIPANTS · '+(run.mode==='double'?'DUO':'SOLO')+'</h3>'+(preview?reception():'')+(dome.menu==='bracket'||!preview?'<div class="dome-tree">'+bracket+'</div>':'')+(dome.menu==='profile'&&preview?profilePanel:'')+controls+'</section>';
  if($('#dome-opponent'))$('#dome-opponent').onclick=()=>{dome.menu='profile';dome.viewProfile=opponent?.id;renderBattle();};
@@ -183,6 +183,7 @@ function renderDomeScreen(run,snap){
    await saveQueue;
    run.dome=createDomeEntrants(run.team,run.levelMode,previous);
    await begin(true);
+   if(engine?.status!=='active'||run.dome.phase!=='preview')throw Error('La reprise du défi a échoué.');
   }catch(error){
    run.dome=previous;
    notify('Impossible de lancer le tournoi suivant : '+error.message);
