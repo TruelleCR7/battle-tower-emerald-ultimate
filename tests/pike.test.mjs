@@ -75,3 +75,30 @@ test('Pike page and game modules pass Node JavaScript syntax checks',async()=>{
   assert.doesNotThrow(()=>execFileSync(process.execPath,['--check',new URL('../web/'+filename,import.meta.url).pathname],{stdio:'pipe'}),filename);
  }
 });
+
+test('The Pike is chosen in the same installation select and entered via the main start button',()=>{
+ const app=readFileSync(new URL('../web/app.mjs',import.meta.url),'utf8');
+ const html=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
+ assert.match(html,/<option value="tower">Tour de Combat/);
+ assert.match(html,/<option value="factory">Usine de Combat/);
+ assert.match(html,/<option value="dome">Dôme de Combat/);
+ assert.match(html,/<option value="pike">Reptile de Combat/);
+ assert.match(app,/isPike=state\.facility==='pike'/);
+ assert.match(app,/if\(state\.facility==='pike'\)\{window\.location\.assign\('\.\/pike\.html'\);return;\}/);
+ assert.doesNotMatch(app,/\$\('#facility-select'\)\.onchange=e=>\{if\(e\.target\.value==='pike'\)/);
+});
+test('Pike battles have a Pokémon sprite battlefield with hit points and animations',()=>{
+ const ui=readFileSync(new URL('../web/pike-ui.mjs',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../web/pike.css',import.meta.url),'utf8');
+ const svg=readFileSync(new URL('../web/pike-door.svg',import.meta.url),'utf8');
+ assert.match(ui,/gen5ani-back/);
+ assert.match(ui,/pike-battle-enemy/);
+ assert.match(ui,/pike-battle-player/);
+ assert.match(ui,/data-battler/);
+ assert.match(ui,/pike-health-track/);
+ assert.match(ui,/new BattlePresenter\(arena\)/);
+ assert.match(ui,/pike-door\.svg/);
+ assert.match(css,/image-rendering:pixelated/);
+ assert.match(svg,/shape-rendering="crispEdges"/);
+ assert.match(ui,/battle\.turnActions\(choices\)/);
+});
