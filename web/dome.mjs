@@ -74,3 +74,20 @@ export function domeCpuSelection(enemyTeam,playerTeam,data,typeChart,random=Math
  if(scores.every(x=>x===scores[0]))return random()<.5?[order[0],order[1]]:[order[1],order[0]];
  return random()<.4?[order[0],order[1]]:[order[1],order[0]];
 }
+
+export function domeProfile(participant,data){
+ const team=participant.team||[];
+ const totals={hp:0,atk:0,def:0,spe:0,spa:0,spd:0};
+ for(const p of team)for(let i=0;i<6;i++)totals[['hp','atk','def','spe','spa','spd'][i]]+=Number(p.evs?.[i]||0);
+ const high=Math.max(...Object.values(totals));
+ const favored=Object.keys(totals).filter(k=>totals[k]===high&&high>0);
+ const moveStats={attack:0,defense:0,status:0};
+ for(const p of team)for(const move of p.moves||[]){
+  const m=data.moveData?.[move];if(!m)continue;
+  if(Number(m.power)>0)moveStats.attack++;
+  else moveStats.status++;
+  if(['PROTECT','DETECT','RECOVER','REST','LIGHT_SCREEN','REFLECT','SUBSTITUTE'].includes(move))moveStats.defense++;
+ }
+ const style=moveStats.defense>=3?'Défensif':moveStats.status>=moveStats.attack?'Technique':'Offensif';
+ return {name:participant.name,seed:participant.seed,strength:participant.strength,style,favored,team:team.map(p=>p.species)};
+}
