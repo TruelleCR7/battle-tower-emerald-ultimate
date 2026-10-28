@@ -108,3 +108,11 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .dome-tree-pair span+span{border-top:1px solid #a2b5a5}
 .dome-tree-pair .dome-qualified{background:#b9e6a7;font-weight:900}
 @media(max-width:680px){.dome-tree{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.dome-reception{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;padding:10px;border:2px solid #73968a;background:#e4eedf}
+.dome-reception .btn{font-size:11px}
+.dome-profile{margin:10px 0;padding:13px;background:#f2f5e9;border:2px solid #7b9b8d;color:#264d42}
+.dome-profile h4{margin:0 0 8px}
+.dome-profile p{font-size:12px}
+.dome-tree-pair [data-dome-profile]{cursor:pointer}
+.dome-tree-pair [data-dome-profile]:hover{text-decoration:underline;background:#d5e8c9}
