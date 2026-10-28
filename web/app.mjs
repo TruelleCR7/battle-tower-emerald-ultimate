@@ -151,7 +151,7 @@ function renderDomeScreen(run,snap){
  if($('#dome-rest'))$('#dome-rest').onclick=async()=>{await saveBattleSession();nav('mode');};
  if($('#dome-leave'))$('#dome-leave').onclick=async()=>{if(confirm('Abandonner le tournoi et perdre la série ?')){engine.status='lost';dome.phase='eliminated';await saveBattleSession();nav('mode');}};
  if($('#dome-record'))$('#dome-record').onclick=()=>notify('Le combat précédent est conservé dans l’historique de ce défi.');
- $('[data-dome-profile]').forEach(b=>b.onclick=()=>{dome.menu='profile';dome.viewProfile=b.dataset.domeProfile;renderBattle();});
+ $$('[data-dome-profile]').forEach(b=>b.onclick=()=>{dome.menu='profile';dome.viewProfile=b.dataset.domeProfile;renderBattle();});
  $$('[data-dome-pick]').forEach(button=>button.onclick=async()=>{
   const index=Number(button.dataset.domePick),current=Array.isArray(dome.chosen)?[...dome.chosen]:[0,1];
   if(current.includes(index)){if(current.length>1)current.splice(current.indexOf(index),1);}
