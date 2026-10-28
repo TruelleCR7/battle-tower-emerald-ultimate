@@ -381,7 +381,7 @@ export class TowerEngine {
    default:this.write('⚠ Effet non porté : '+move.name+' ('+move.originalEffect+').');
   }
  }
- afterHit(m,t,move){if(t.hp<=0&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;const chance=(move.secondaryChance||0)*(m.ability==='SERENE_GRACE'?2:1)/100;
+ afterHit(m,t,move){if(t.hp<=0&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;const chance=Math.min(100,(move.secondaryChance||0)*(m.ability==='SERENE_GRACE'?2:1));
   if((Math.floor(this.rng()*65536)%100)>=Math.min(100,chance))return;
   if(t.ability==='SHIELD_DUST'&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;
   const e=move.originalEffect;
