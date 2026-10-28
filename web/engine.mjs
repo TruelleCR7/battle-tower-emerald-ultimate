@@ -329,6 +329,8 @@ export class TowerEngine {
   const releasing=Boolean(preparation&&preparation.move===name);
   if(preparation&&!releasing){m.charging=null;return;}
   if(!releasing&&kind&&!(kind==='solar'&&this.weather==='sun'&&weatherActive(this))){
+   // A charge is an offensive action: it interrupts consecutive Protect streaks.
+   m.protectCount=0;
    if((m.pp[name]||0)<=0)return;
    m.pp[name]--;
    if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);
@@ -338,7 +340,16 @@ export class TowerEngine {
    this.write(`${m.name} prépare ${move.name} !`,{kind:'charge',actor:m.id,move:name,side:this.sideOf(m)});
    return;
   }
-  if(releasing){m.charging=null;a={...a,target:preparation.target};}
+  if(releasing){
+   m.charging=null;
+   const original=this.get(preparation.target);
+   // A replacement Pokémon isn't the original target. Retarget to a living foe
+   // when the marked target fainted or left play during the charge.
+   const enemySide=this.sideOf(m)==='player'?'opponent':'player';
+   const target=original?.active&&original.hp>0?original:
+    this.active(enemySide)[0];
+   a={...a,target:target?.id};
+  }
   if(name!=='STRUGGLE'&&m.choiceLock&&m.choiceLock!==name){this.write(`${m.name} est bloqué sur ${this.data.moveData[m.choiceLock]?.name||m.choiceLock}.`);return;}
   if(!releasing&&name!=='STRUGGLE'&&(m.pp[name]||0)<=0){this.write(`${m.name} n'a plus de PP !`);return;}
   if(!releasing&&name!=='STRUGGLE'){m.pp[name]--;if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);}
