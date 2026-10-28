@@ -317,7 +317,7 @@ async function main(){let response=await fetch('./data/catalog.json');if(!respon
  if(!MODES[state.mode]||state.mode==='network')state.mode='single';
  if(!state.team.length)state.team=['METAGROSS','SWAMPERT','LATIOS'].map(setFor).filter(Boolean);
  $('#version-label').textContent='v0.6.4 · DÔME EN TEST';
- $('#facility-select').onchange=e=>{state.facility=e.target.value;if(state.facility==='factory'||state.facility==='dome')state.mode='single';factoryPool=[];factorySelection=[];store();renderMode();};
+ $('#facility-select').onchange=e=>{if(e.target.value==='pike'){window.location.assign('./pike.html');return;}state.facility=e.target.value;if(state.facility==='factory'||state.facility==='dome')state.mode='single';factoryPool=[];factorySelection=[];store();renderMode();};
  presenter=new BattlePresenter($('#battle-arena'));setupOptions();
  $('#battle-arena').onclick=e=>{const button=e.target.closest('[data-stat-info]');if(button)showStats(engine.get(button.dataset.statInfo));};
  setupLibrary();
