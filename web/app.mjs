@@ -136,6 +136,15 @@ function renderReplacement(){
   try{await saveQueue;const backup=deepCopy(state.runs.find(x=>x.id===activeRun));try{const result=engine.replaceFainted(r.fainted,selected.id);actions={};switchPrompt=null;if(result.status!=='active')saveRecord(result.status);if(result.status==='won')prepareFactoryOffers();await saveBattleSession();renderBattle();}catch(error){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw error;}}catch(error){notify(error.message);if(!storageFailed)renderBattle();}
  };}return true;
 }
+function showDomeSavedReplay(run,replay){
+ let dialog=$('#dome-replay-dialog');
+ if(!dialog){dialog=document.createElement('dialog');dialog.id='dome-replay-dialog';dialog.className='game-dialog dome-replay-dialog';document.body.append(dialog);}
+ const number=Number(replay.number)||1;
+ dialog.innerHTML='<h2>PASSE ZONE · COMBAT '+number+'</h2><p>Adversaire : <b>'+escapeHTML(replay.trainer||'Dresseur')+'</b></p><div class="dome-replay-log">'+logHTML(replay.log||[])+'</div><div class="dome-replay-actions"><button class="btn" id="dome-replay-export">EXPORTER LE COMBAT</button><button class="btn primary" id="dome-replay-close">FERMER</button></div>';
+ $('#dome-replay-export').onclick=()=>download('Dome-combat-'+number+'.json',{facility:'dome',run:run.id,number,trainer:replay.trainer,log:replay.log});
+ $('#dome-replay-close').onclick=()=>dialog.close();
+ if(!dialog.open)dialog.showModal();
+}
 function renderDomeScreen(run,snap){
  const dome=run.dome;
  if(snap.status!=='active'&&!dome.resolvedBattle){
@@ -172,7 +181,13 @@ function renderDomeScreen(run,snap){
  if($('#dome-select'))$('#dome-select').onclick=()=>{dome.menu='select';renderBattle();};
  if($('#dome-rest'))$('#dome-rest').onclick=async()=>{await saveBattleSession();nav('mode');};
  if($('#dome-leave'))$('#dome-leave').onclick=async()=>{if(confirm('Abandonner le tournoi et perdre la série ?')){engine.status='lost';dome.phase='eliminated';await saveBattleSession();nav('mode');}};
- if($('#dome-record'))$('#dome-record').onclick=()=>notify('Le combat précédent est conservé dans l’historique de ce défi.');
+ if($('#dome-record'))$('#dome-record').onclick=async()=>{
+  const previous=run.pastBattles?.at(-1);
+  if(!previous){notify('Aucun combat précédent à enregistrer.');return;}
+  run.recordedBattles??=[];
+  if(!run.recordedBattles.includes(previous.number)){run.recordedBattles.push(previous.number);await store();}
+  showDomeSavedReplay(run,previous);
+ };
  $$('[data-dome-profile]').forEach(b=>b.onclick=()=>{dome.menu='profile';dome.viewProfile=b.dataset.domeProfile;renderBattle();});
  $$('[data-dome-pick]').forEach(button=>button.onclick=async()=>{
   const index=Number(button.dataset.domePick),current=Array.isArray(dome.chosen)?[...dome.chosen]:[0,1];
