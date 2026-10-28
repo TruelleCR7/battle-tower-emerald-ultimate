@@ -80,6 +80,18 @@ function makesContact(key,move){
  if(Array.isArray(move.flags))return move.flags.includes('contact')||move.flags.includes('MAKES_CONTACT');
  return CONTACT_MOVE_KEYS.has(key);
 }
+const TWO_TURN_MOVES={FLY:'fly',DIG:'dig',DIVE:'dive',BOUNCE:'fly',SOLAR_BEAM:'solar'};
+function twoTurnKind(key,move){
+ return TWO_TURN_MOVES[key]||({FLY:'fly',DIG:'dig',DIVE:'dive',SOLAR_BEAM:'solar'}[move?.originalEffect])||null;
+}
+function canHitChargingTarget(moveKey,target){
+ const type=target.charging?.kind;
+ if(!type||type==='solar')return true;
+ if(type==='fly')return ['GUST','TWISTER','THUNDER','SKY_UPPERCUT','HURRICANE'].includes(moveKey);
+ if(type==='dig')return ['EARTHQUAKE','MAGNITUDE','FISSURE'].includes(moveKey);
+ if(type==='dive')return ['SURF','WHIRLPOOL'].includes(moveKey);
+ return true;
+}
 const statusTranslation={burn:'brûlure',paralyze:'paralysie',poison:'poison',toxic:'poison grave',freeze:'gel',sleep:'sommeil'};
 export class TowerEngine {
  constructor(data,config={}) {
@@ -193,7 +205,7 @@ export class TowerEngine {
   if(choices.length!==required.length||new Set(choices.map(a=>a.actor)).size!==choices.length)throw Error('Une seule action par Pokémon contrôlé.');
   const replacements=new Set();for(const a of choices){const m=this.get(a.actor);if(!required.includes(a.actor))throw Error('Pokémon non contrôlable.');
    if(a.type==='switch'){const to=this.get(a.to);if(!to||to.active||to.hp<=0||to.owner!==m.owner||this.sideOf(to)!==this.sideOf(m)||replacements.has(a.to))throw Error('Remplacement impossible ou déjà choisi.');replacements.add(a.to);}
-   else if(a.type==='move'){const move=this.data.moveData[a.move];if(move?.effect==='baton'&&!this.bench(this.sideOf(m),m.owner).some(p=>p.id===a.to))throw Error('Choisis le destinataire de Relais.');if(!move||(!m.moves.includes(a.move)&&a.move!=='STRUGGLE')||(a.move!=='STRUGGLE'&&(m.pp[a.move]<=0||(m.choiceLock&&m.choiceLock!==a.move))))throw Error('Capacité indisponible.');
+   else if(a.type==='move'){if(m.charging)continue;const move=this.data.moveData[a.move];if(move?.effect==='baton'&&!this.bench(this.sideOf(m),m.owner).some(p=>p.id===a.to))throw Error('Choisis le destinataire de Relais.');if(!move||(!m.moves.includes(a.move)&&a.move!=='STRUGGLE')||(a.move!=='STRUGGLE'&&(m.pp[a.move]<=0||(m.choiceLock&&m.choiceLock!==a.move))))throw Error('Capacité indisponible.');
     if(a.move==='STRUGGLE'&&m.moves.some(k=>m.pp[k]>0&&(!m.choiceLock||m.choiceLock===k)))throw Error('Lutte indisponible tant qu’une capacité est utilisable.');
     if(move.target==='enemy'&&!['COUNTER','MIRROR_COAT'].includes(move.originalEffect)){const t=this.get(a.target);if(!t||!t.active||t.hp<=0||t.id===m.id)throw Error('Choisis une cible active valide.');}
    }else throw Error('Action inconnue.');
@@ -204,7 +216,7 @@ export class TowerEngine {
   if(this.pendingReplacements?.length)throw Error('Choisis le Pokémon à envoyer après le K.O.');
   this.pendingDefaults(playerChoices);
   const sides=[...this.active('player'),...this.active('opponent')];
-  const actions=[];for(const m of sides){let a=playerChoices.find(x=>x.actor===m.id);if(!a)a=this.aiAction(m);if(a)actions.push(deep(a));}
+  const actions=[];for(const m of sides){let a=m.charging?{actor:m.id,type:'move',move:m.charging.move,target:m.charging.target}:playerChoices.find(x=>x.actor===m.id);if(!a)a=this.aiAction(m);if(a)actions.push(deep(a));}
   for(const m of sides)m.receivedDamage={};
   this.turn++;this.write('— Tour '+this.turn+' —');
   // Process action by priority & speed, with a small random tie break.
@@ -232,7 +244,7 @@ export class TowerEngine {
   if(!target||target.hp<=0||target.active||target.owner!==m.owner||slot<0)return this.write('Changement impossible.');
   const transfer=carry?{stages:{...m.stages},...Object.fromEntries(['confused','focusEnergy','substitute','escapePrevention','cursed','seeded','lockedOnBy','perish','rooted','mudSport','waterSport'].map(k=>[k,m[k]??0]))}:null;
   if(m.ability==='NATURAL_CURE'){m.status='';m.toxic=0;m.sleep=0;}
-  m.active=false;m.stages={atk:0,def:0,spa:0,spd:0,spe:0,acc:0,eva:0};m.choiceLock='';m.protectCount=0;m.seeded=false;m.substitute=0;
+  m.charging=null;m.active=false;m.stages={atk:0,def:0,spa:0,spd:0,spe:0,acc:0,eva:0};m.choiceLock='';m.protectCount=0;m.seeded=false;m.substitute=0;
   for(const key of ['confused','focusEnergy','substitute','escapePrevention','cursed','seeded','lockedOnBy','perish','rooted','mudSport','waterSport','foresight']){m[key]=0;target[key]=0;}
   target.stages=Object.fromEntries(STAT_KEYS.map(k=>[k,0]));
   target.active=true;target.receivedDamage={};target.aiKnownMoves=[];target.aiKnownAbility='';target.enteredTurn=this.turn;this[side].active[slot]=newid;
@@ -310,11 +322,26 @@ export class TowerEngine {
   return true;
  }
  execute(m,a){
-  if(!this.canAct(m))return;
+  if(!this.canAct(m)){if(m.charging){this.write(`${m.name} interrompt sa préparation.`);m.charging=null;}return;}
   let name=a.move,move=this.data.moveData[name];if(!move||(!m.moves.includes(name)&&name!=='STRUGGLE'))return;
+  const preparation=m.charging;
+  const kind=twoTurnKind(name,move);
+  const releasing=Boolean(preparation&&preparation.move===name);
+  if(preparation&&!releasing){m.charging=null;return;}
+  if(!releasing&&kind&&!(kind==='solar'&&this.weather==='sun'&&weatherActive(this))){
+   if((m.pp[name]||0)<=0)return;
+   m.pp[name]--;
+   if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);
+   m.charging={move:name,kind,target:a.target};
+   m.lastMove=name;
+   if(m.item==='CHOICE_BAND')m.choiceLock=name;
+   this.write(`${m.name} prépare ${move.name} !`,{kind:'charge',actor:m.id,move:name,side:this.sideOf(m)});
+   return;
+  }
+  if(releasing){m.charging=null;a={...a,target:preparation.target};}
   if(name!=='STRUGGLE'&&m.choiceLock&&m.choiceLock!==name){this.write(`${m.name} est bloqué sur ${this.data.moveData[m.choiceLock]?.name||m.choiceLock}.`);return;}
-  if(name!=='STRUGGLE'&&(m.pp[name]||0)<=0){this.write(`${m.name} n'a plus de PP !`);return;}
-  if(name!=='STRUGGLE'){m.pp[name]--;if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);}
+  if(!releasing&&name!=='STRUGGLE'&&(m.pp[name]||0)<=0){this.write(`${m.name} n'a plus de PP !`);return;}
+  if(!releasing&&name!=='STRUGGLE'){m.pp[name]--;if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);}
   if(m.item==='CHOICE_BAND')m.choiceLock=name;
   m.lastMove=name;this.write(`${m.name} utilise ${move.name} !`,{kind:'move',actor:m.id,side:this.sideOf(m),move:name,target:a.target});
   if(move.effect==='protect'){const good=this.rng()<1/Math.pow(2,m.protectCount);m.protectCount++;m.guarded=good;this.write(good?`${m.name} est protégé.`:'Mais cela échoue !');return;}
@@ -335,6 +362,7 @@ export class TowerEngine {
   else recipients=[target&&target.hp>0&&target.active?target:this.active(foe)[0]].filter(Boolean);
   if(!recipients.length)return;
   for(const t of recipients){if(t.hp<=0)continue;
+   if(!canHitChargingTarget(name,t)){this.write(`${t.name} est hors de portée de ${move.name}.`);continue;}
    if(t.guarded){this.write(`${t.name} se protège de ${move.name}.`);continue;}
    const hitAcc=accuracyChance(this,m,t,move);
    if(move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>hitAcc){this.write(`${m.name} manque sa cible ${t.name}.`);continue;}
@@ -455,7 +483,7 @@ export class TowerEngine {
   this.pendingReplacements??=[];
   for(const side of ['player','opponent'])for(let slot=0;slot<this[side].active.length;slot++){
    const m=this.get(this[side].active[slot]);if(!m||m.hp>0)continue;
-   m.active=false;this[side].active[slot]=null;this.write(`${m.name} est K.O. !`);
+   m.charging=null;m.active=false;this[side].active[slot]=null;this.write(`${m.name} est K.O. !`);
    if(this.bench(side,m.owner).length)this.pendingReplacements.push({side,slot,owner:m.owner,fainted:m.id});
   }
  }
