@@ -81,3 +81,37 @@ test('Status stat changes keep action logs and snapshot stage state in agreement
  assert.equal(c.e.snapshot().opponent.party[0].stages.atk,-1);
  assert.equal(c.e.log.find(x=>x.kind==='stat'&&x.stat==='atk')?.to,-1);
 });
+
+test('White Herb clears negative stages immediately after Screech but not positive ones',()=>{
+ const c=setup('SCREECH');
+ c.enemy.item='WHITE_HERB';c.enemy.stages.atk=2;
+ play(c,'SCREECH');
+ assert.equal(c.enemy.stages.def,0);
+ assert.equal(c.enemy.stages.atk,2);
+ assert.equal(c.enemy.item,'NONE');
+ assert.equal(c.enemy.usedItem,'WHITE_HERB');
+});
+test('Haze clears active battlers stat changes in a real turn',()=>{
+ const c=setup('HAZE');c.player.stages.atk=3;c.enemy.stages.spe=-2;
+ play(c,'HAZE');
+ assert.equal(c.player.stages.atk,0);
+ assert.equal(c.enemy.stages.spe,0);
+});
+test('Stat boosts reset on ordinary switches, with no accidental carryover',()=>{
+ const c=setup('SWORDS_DANCE');
+ const bench={...c.player,id:'reserve',active:false,stages:stages(),moves:['GROWL'],pp:{GROWL:40}};
+ c.e.player.party.push(bench);
+ play(c,'SWORDS_DANCE');assert.equal(c.player.stages.atk,2);
+ c.e.switchMon(c.player,bench.id);
+ assert.equal(c.player.stages.atk,0);
+ assert.equal(bench.stages.atk,0);
+ assert.deepEqual(c.e.player.active,['reserve']);
+});
+test('Paralysis prevents selected moves without consuming a PP',()=>{
+ const c=setup('SWORDS_DANCE',{rng:()=>0});
+ c.player.status='paralyze';
+ play(c,'SWORDS_DANCE');
+ assert.equal(c.player.pp.SWORDS_DANCE,20);
+ assert.equal(c.player.stages.atk,0);
+ assert.ok(c.e.log.some(x=>x.text.includes('totalement paralysé')));
+});
