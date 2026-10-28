@@ -75,3 +75,17 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .factory-summary-section{background:#bfd4bd;border-left:5px solid #47736a;padding:7px 10px;color:#183d35;letter-spacing:.05em}
 .factory-summary-stats>div,.factory-summary-moves li{background:#f7f8eb;border:2px solid #a1b7a2}
 @media(max-width:480px){.factory-pick-row{gap:5px}.factory-pick-row .factory-detail{padding:7px;font-size:9px}.factory-summary-banner{font-size:12px}}
+
+/* Visible battle conditions and type-colored Factory moves. */
+.condition-tags{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.condition-tag{border:2px solid #374e53;border-radius:3px;padding:3px 7px;font-size:10px;font-weight:900;letter-spacing:.04em;color:#17212a;background:#d4e0e1;box-shadow:1px 2px 0 #22353c}
+.condition-sleep{background:#a9b7d3}.condition-paralyze{background:#f2d66a}.condition-poison,.condition-toxic{background:#c39ad6}.condition-burn{background:#ed9678}.condition-freeze{background:#a0d9ee}.condition-confused{background:#f0a9c9}
+.factory-summary-moves .factory-move{border-left-width:7px}
+.move-type-badge{display:inline-block;border:1px solid #55616a;border-radius:3px;padding:2px 5px;color:#1a2730;font-size:10px;font-weight:800}
+.dome-bracket{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
+.dome-round{display:flex;flex-direction:column;gap:8px;padding:12px 7px;border:2px solid #829b8d;background:#f2f4e7;font-size:11px;text-align:center}
+.dome-round.current{border-color:#3b6d59;background:#d4e9c6}
+.dome-round small{font-size:9px}
+.dome-opponents{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.dome-opponent{display:flex;align-items:center;gap:6px;padding:8px;border:2px solid #789a8a;background:#f1f4e5}
+@media(max-width:560px){.dome-bracket{grid-template-columns:repeat(2,minmax(0,1fr))}}
