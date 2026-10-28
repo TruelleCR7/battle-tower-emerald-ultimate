@@ -295,7 +295,7 @@ export class TowerEngine {
   let name=a.move,move=this.data.moveData[name];if(!move||(!m.moves.includes(name)&&name!=='STRUGGLE'))return;
   if(name!=='STRUGGLE'&&m.choiceLock&&m.choiceLock!==name){this.write(`${m.name} est bloqué sur ${this.data.moveData[m.choiceLock]?.name||m.choiceLock}.`);return;}
   if(name!=='STRUGGLE'&&(m.pp[name]||0)<=0){this.write(`${m.name} n'a plus de PP !`);return;}
-  if(name!=='STRUGGLE')m.pp[name]--;if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);
+  if(name!=='STRUGGLE'){m.pp[name]--;if(this.get(a.target)?.ability==='PRESSURE')m.pp[name]=Math.max(0,m.pp[name]-1);}
   if(m.item==='CHOICE_BAND')m.choiceLock=name;
   m.lastMove=name;this.write(`${m.name} utilise ${move.name} !`,{kind:'move',actor:m.id,side:this.sideOf(m),move:name,target:a.target});
   if(move.effect==='protect'){const good=this.rng()<1/Math.pow(2,m.protectCount);m.protectCount++;m.guarded=good;this.write(good?`${m.name} est protégé.`:'Mais cela échoue !');return;}
