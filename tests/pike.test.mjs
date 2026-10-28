@@ -66,3 +66,10 @@ test('Battle Pike UI is a separate page and existing app routes without mutating
  assert.match(main,/window\.location\.assign\('\.\/pike\.html'\)/);
  assert.doesNotMatch(ui,/RunStore|saveBattleSession|state\.runs/);
 });
+
+test('Pike page and game modules pass Node JavaScript syntax checks',async()=>{
+ const {execFileSync}=await import('node:child_process');
+ for(const filename of ['pike-ui.mjs','pike.mjs']){
+  assert.doesNotThrow(()=>execFileSync(process.execPath,['--check',new URL('../web/'+filename,import.meta.url).pathname],{stdio:'pipe'}),filename);
+ }
+});
