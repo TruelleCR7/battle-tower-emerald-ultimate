@@ -53,13 +53,14 @@ function statusInfo(m){
  '<span>'+m.hp+'/'+m.maxHp+' PV · '+esc(m.status||'Aucun statut')+' · '+esc(m.ability)+'</span>'+
  '<div class="lab-hp"><span style="width:'+Math.max(0,Math.min(100,m.hp/m.maxHp*100))+'%"></span></div>'+
  '<small>'+esc(details||'Statistiques neutres')+'</small><small>ATQ '+effectiveStat(battle,m,'atk')+' · DÉF '+effectiveStat(battle,m,'def')+' · ATQ.SPÉ '+effectiveStat(battle,m,'spa')+' · DÉF.SPÉ '+effectiveStat(battle,m,'spd')+' · VIT '+effectiveStat(battle,m,'spe')+'</small>'+
+ (m.charging?'<strong class="lab-active">PRÉPARATION : '+esc(D.moveData[m.charging.move]?.name||m.charging.move)+' · attaque au prochain tour</strong>':'')+
  (m.active?'<span class="lab-active">ACTIF</span>':'<span class="lab-bench">RÉSERVE</span>')+'</article>';
 }
 function actionBox({id,name,side,moves,pp,bench},targets){
  const user=battle.get(id);
- return '<div class="lab-action" data-actor="'+esc(id)+'"><b>'+esc(name)+' · '+(side==='player'?'BLEU':'ROUGE')+'</b>'+
+ return '<div class="lab-action" data-actor="'+esc(id)+'"><b>'+esc(name)+' · '+(side==='player'?'BLEU':'ROUGE')+'</b>'+(user.charging?'<p><strong>Tour de libération automatique : '+esc(D.moveData[user.charging.move]?.name||user.charging.move)+'</strong></p>':'')+
  '<label>ACTION<select class="lab-action-type"><option value="move">Attaquer</option>'+(bench.length?'<option value="switch">Changer de Pokémon</option>':'')+'</select></label>'+
- '<label>CAPACITÉ<select class="lab-action-move">'+moves.map(k=>'<option value="'+esc(k)+'" '+(pp[k]<=0?'disabled':'')+'>'+esc(D.moveData[k]?.name||k)+' · '+pp[k]+' PP</option>').join('')+'</select></label>'+
+ '<label>CAPACITÉ<select class="lab-action-move">'+moves.filter(k=>!user.charging||user.charging.move===k).map(k=>'<option value="'+esc(k)+'" '+(pp[k]<=0&&!user.charging?'disabled':'')+'>'+esc(D.moveData[k]?.name||k)+' · '+pp[k]+' PP</option>').join('')+'</select></label>'+
  '<label>CIBLE<select class="lab-action-target">'+targets.filter(t=>t.id!==id).map(t=>'<option value="'+esc(t.id)+'" '+(battle.sideOf(t)!==side?'selected':'')+'>'+esc(t.name)+' · '+(battle.sideOf(t)==='player'?'BLEU':'ROUGE')+'</option>').join('')+'</select></label>'+
  '<label>REMPLACER PAR<select class="lab-action-switch">'+bench.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')+'</select></label></div>';
 }
