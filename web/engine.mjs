@@ -403,9 +403,6 @@ export class TowerEngine {
   }else if(ability==='EFFECT_SPORE'&&this.rng()<.3){
    const effect=['poison','paralyze','sleep'][Math.floor(this.rng()*3)];
    this.inflict(attacker,effect);
-  }else if(ability==='CUTE_CHARM'&&this.rng()<.3){
-   // Attract needs compatible genders; do not assign infatuation without gender data.
-   this.write('Joli Sourire : attirance non appliquée (sexe inconnu).');
   }
  }
  afterHit(m,t,move){if(t.hp<=0&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;const chance=Math.min(100,(move.secondaryChance||0)*(m.ability==='SERENE_GRACE'?2:1));
