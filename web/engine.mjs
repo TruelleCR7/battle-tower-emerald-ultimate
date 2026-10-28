@@ -73,6 +73,13 @@ export function makeMon(set,data,owner,level=50){
 function randInt(rng,n){return Math.floor(rng()*n);}
 function statStage(k){return k>=0?(2+k)/2:2/(2-k);}
 function accStage(k){return k>=0?(3+k)/3:3/(3-k);}
+const CONTACT_MOVE_KEYS=new Set(['TACKLE','SCRATCH','POUND','QUICK_ATTACK','EXTREME_SPEED','RETURN','FRUSTRATION','DOUBLE_EDGE','BODY_SLAM','TAKE_DOWN','HEADBUTT','FAKE_OUT','SLASH','CRUSH_CLAW','BRICK_BREAK','CROSS_CHOP','MACH_PUNCH','SKY_UPPERCUT','CLOSE_COMBAT','MEGAHORN','POISON_TAIL','IRON_TAIL','METEOR_MASH','AERIAL_ACE','WING_ATTACK','DRAGON_CLAW','SHADOW_CLAW','THUNDER_PUNCH','FIRE_PUNCH','ICE_PUNCH','DRAIN_PUNCH','DIZZY_PUNCH','FOCUS_PUNCH','BITE','CRUNCH','STRENGTH','CUT','FLY','DIG','WATERFALL','ROCK_SMASH','SUPERPOWER','REVERSAL','FLAIL','STRUGGLE']);
+function makesContact(key,move){
+ if(typeof move.makesContact==='boolean')return move.makesContact;
+ if(typeof move.contact==='boolean')return move.contact;
+ if(Array.isArray(move.flags))return move.flags.includes('contact')||move.flags.includes('MAKES_CONTACT');
+ return CONTACT_MOVE_KEYS.has(key);
+}
 const statusTranslation={burn:'brûlure',paralyze:'paralysie',poison:'poison',toxic:'poison grave',freeze:'gel',sleep:'sommeil'};
 export class TowerEngine {
  constructor(data,config={}) {
@@ -336,6 +343,7 @@ export class TowerEngine {
    if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD')this.hpLoss(m,Math.max(1,Math.floor(dealt/3)),'contrecoup');
    if(m.item==='SHELL_BELL'&&dealt)this.heal(m,dealt/8);
    this.afterHit(m,t,move);
+   this.contactEffects(m,t,name,move);
    if(t.hp<=0&&t.destiny&&m.hp>0)this.hpLoss(m,m.hp,'Prélèvement Destin');
   }
   if(move.effect==='explode'&&m.hp>0){this.hpLoss(m,m.hp,'Explosion');}
@@ -379,6 +387,25 @@ export class TowerEngine {
    case 'seed':if(!this.data.species[t.species].types.includes('GRASS')){t.seeded=true;this.write(`${t.name} est vampigrainé.`);}break;
    case 'whirlwind':{const r=this.bench(this.sideOf(t),t.owner);if(r.length)this.switchMon(t,r[randInt(this.rng,r.length)].id);break;}
    default:this.write('⚠ Effet non porté : '+move.name+' ('+move.originalEffect+').');
+  }
+ }
+ contactEffects(attacker,defender,moveKey,move){
+  if(!makesContact(moveKey,move)||attacker.hp<=0||this.sideOf(attacker)===this.sideOf(defender))return;
+  const ability=defender.ability;
+  if(ability==='ROUGH_SKIN'){
+   this.hpLoss(attacker,Math.max(1,Math.floor(attacker.maxHp/16)),'Peau Dure');
+  }else if(ability==='STATIC'&&this.rng()<.3){
+   this.inflict(attacker,'paralyze');
+  }else if(ability==='POISON_POINT'&&this.rng()<.3){
+   this.inflict(attacker,'poison');
+  }else if(ability==='FLAME_BODY'&&this.rng()<.3){
+   this.inflict(attacker,'burn');
+  }else if(ability==='EFFECT_SPORE'&&this.rng()<.3){
+   const effect=['poison','paralyze','sleep'][Math.floor(this.rng()*3)];
+   this.inflict(attacker,effect);
+  }else if(ability==='CUTE_CHARM'&&this.rng()<.3){
+   // Attract needs compatible genders; do not assign infatuation without gender data.
+   this.write('Joli Sourire : attirance non appliquée (sexe inconnu).');
   }
  }
  afterHit(m,t,move){if(t.hp<=0&&!['ATTACK_UP_HIT','DEFENSE_UP_HIT','ALL_STATS_UP_HIT'].includes(move.originalEffect))return;const chance=Math.min(100,(move.secondaryChance||0)*(m.ability==='SERENE_GRACE'?2:1));
