@@ -42,3 +42,35 @@ export function domeSelectTwo(team,indices){
  if(!Array.isArray(indices)||indices.length!==2||new Set(indices).size!==2||indices.some(i=>!Number.isInteger(i)||i<0||i>=team.length))throw Error('Sélectionne deux Pokémon différents.');
  return indices.map(i=>team[i]);
 }
+
+/** Gen III Dome offensive/defensive matchup scoring (selection phase).
+ * Tie-break and lead probabilities mirror documented Emerald selection rules.
+ */
+export function domeCpuSelection(enemyTeam,playerTeam,data,typeChart,random=Math.random){
+ const score=(mon,method)=>{
+  let points=0;
+  for(const target of playerTeam){
+   if(method==='offense'){
+    for(const move of mon.moves||[]){
+     const info=data.moveData?.[move];if(!info||!info.power)continue;
+     const multiplier=(data.species[target.species]?.types||[]).reduce((v,t)=>v*(typeChart[info.type]?.[t]??1),1);
+     if(multiplier>=4)points+=8;else if(multiplier>=2)points+=4;else if(multiplier>=1)points+=2;
+    }
+   }else{
+    for(const move of target.moves||[]){
+     const info=data.moveData?.[move];if(!info||!info.power)continue;
+     const multiplier=(data.species[mon.species]?.types||[]).reduce((v,t)=>v*(typeChart[info.type]?.[t]??1),1);
+     if(multiplier===0)points+=8;else if(multiplier<=.25)points+=4;else if(multiplier<=.5)points+=2;
+     else if(multiplier>=4)points-=4;else if(multiplier>=2)points-=2;
+    }
+   }
+  }
+  return points;
+ };
+ let method=random()<.5?'offense':'defense';
+ let scores=enemyTeam.map(p=>score(p,method));
+ if(scores.every(x=>x===scores[0])){method=method==='offense'?'defense':'offense';scores=enemyTeam.map(p=>score(p,method));}
+ const order=enemyTeam.map((_,i)=>i).sort((a,b)=>scores[b]-scores[a]||(random()<.5?-1:1));
+ if(scores.every(x=>x===scores[0]))return random()<.5?[order[0],order[1]]:[order[1],order[0]];
+ return random()<.4?[order[0],order[1]]:[order[1],order[0]];
+}
