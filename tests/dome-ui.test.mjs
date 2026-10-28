@@ -17,3 +17,10 @@ test('status badges cover primary ailments and volatile confusion',()=>{
 test('Factory detail supports French nature, item and ability labels and move types',()=>{
  for(const label of ['FR_NATURES','FR_ITEMS','FR_ABILITIES','moveTypeBadge'])assert.ok(app.includes(label),label);
 });
+
+test('Dome lead selection is persisted and swaps active combatant before fight',()=>{
+ assert.match(app,/data-dome-lead/);
+ assert.match(app,/run\.dome\.leadIndex=Number\(button\.dataset\.domeLead\)/);
+ assert.match(app,/engine\.player\.active\[activeIndex\]=chosen\.id/);
+ assert.match(app,/run\.dome\.phase='battle'/);
+});
