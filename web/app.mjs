@@ -128,28 +128,44 @@ function renderReplacement(){
  };}return true;
 }
 function renderDomeScreen(run,snap){
- const round=Math.min(3,run.victories||0),labels=['HUITIÈMES','QUARTS','DEMI-FINALE','FINALE'],finished=(run.victories||0)>=4&&snap.status==='won';
- const opponents=engine.opponent.party.map(p=>'<span class="dome-opponent">'+icon(p.species)+' '+escapeHTML(nameOf(p.species))+'</span>').join('');
- const leadIndex=Math.max(0,Math.min(engine.player.party.length-1,Number(run.dome.leadIndex)||0));
- const leadChooser=run.dome.phase==='preview'&&!finished?'<div class="dome-lead-picker"><h3>CHOISIS TON POKÉMON LEAD</h3><p>Le Pokémon choisi sera envoyé en premier. Tu peux changer de lead avant chaque match.</p><div class="dome-lead-options">'+engine.player.party.map((p,i)=>'<button class="dome-lead-option '+(i===leadIndex?'chosen':'')+'" data-dome-lead="'+i+'" aria-pressed="'+(i===leadIndex)+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b><small>'+(i===leadIndex?'★ LEAD':'CHOISIR')+'</small></button>').join('')+'</div></div>':'';
- const bracket='<div class="dome-bracket">'+labels.map((label,i)=>'<div class="dome-round '+(i===round?'current':'')+'"><b>'+label+'</b><small>'+(i<(run.victories||0)?'✓ QUALIFIÉ':i===round?'MATCH À VENIR':'À VENIR')+'</small></div>').join('')+'</div>';
- $('#battle-controls').innerHTML='<section class="terminal dome-panel"><h3>DÔME DE COMBAT · ÉLIMINATION DIRECTE</h3>'+bracket+(finished?'<h3>🏆 TOURNOI REMPORTÉ !</h3><button class="btn primary" id="dome-finish">MES DÉFIS</button>':run.dome.phase==='preview'?'<h3>'+labels[round]+'</h3><p>PROCHAIN ADVERSAIRE : <b>'+escapeHTML(snap.trainer)+'</b></p><p>ÉQUIPE ADVERSE</p><div class="dome-opponents">'+opponents+'</div>'+leadChooser+'<button class="btn primary" id="dome-fight">COMMENCER LE MATCH ▶</button>':snap.status==='won'?'<h3>VICTOIRE · QUALIFIÉ !</h3><button class="btn primary" id="dome-next">TABLEAU DU TOUR SUIVANT ▶</button>':'<h3>ÉLIMINÉ</h3><button class="btn primary" id="dome-finish">MES DÉFIS</button>')+'</section>';
- $$('[data-dome-lead]').forEach(button=>button.onclick=async()=>{run.dome.leadIndex=Number(button.dataset.domeLead);await store();renderBattle();});
+ const dome=run.dome,round=Math.min(3,dome.round||0),finished=dome.champion==='player';
+ const opponent=domeNextOpponent(dome);
+ const names=new Map((dome.participants||[]).map(p=>[p.id,p.player?'VOUS':p.name]));
+ const bracket=(dome.rounds||[]).map((pairs,r)=>'<section class="dome-tree-round"><h4>'+DOME_ROUNDS[r]+'</h4>'+pairs.map(([a,b],i)=>{const winner=dome.results?.[r]?.[i]?.winner;return '<div class="dome-tree-pair"><span class="'+(winner===a?'dome-qualified':'')+'">'+escapeHTML(names.get(a)||'—')+'</span><span class="'+(winner===b?'dome-qualified':'')+'">'+escapeHTML(names.get(b)||'—')+'</span></div>';}).join('')+'</section>').join('');
+ const preview=dome.phase==='preview'&&snap.status==='active';
+ const chosen=Array.isArray(dome.chosen)?dome.chosen:[0,1];
+ const options=preview?'<div class="dome-lead-picker"><h3>CHOISIS TES DEUX POKÉMON</h3><p>Émeraude : inscris trois Pokémon au tournoi, mais sélectionne uniquement deux combattants par match. Le premier sera ton Lead.</p><div class="dome-lead-options">'+run.team.map((p,i)=>{const pos=chosen.indexOf(i);return '<button class="dome-lead-option '+(pos>=0?'chosen':'')+'" data-dome-pick="'+i+'" aria-pressed="'+(pos>=0)+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b><small>'+(pos===0?'★ LEAD':pos===1?'2e POKÉMON':'EN RÉSERVE')+'</small></button>';}).join('')+'</div></div>':'';
+ const opponents=opponent?.team.map(p=>'<span class="dome-opponent">'+icon(p.species)+' '+escapeHTML(nameOf(p.species))+'</span>').join('')||'';
+ const nextLabel=finished?'🏆 TOURNOI REMPORTÉ !':snap.status==='lost'?'ÉLIMINÉ':snap.status==='won'?'VICTOIRE · QUALIFIÉ !':'';
+ const controls=preview?'<h3>'+DOME_ROUNDS[round]+'</h3><p>ADVERSAIRE : <b>'+escapeHTML(opponent?.name||snap.trainer)+'</b></p><p>ÉQUIPE INSCRITE DE L’ADVERSAIRE</p><div class="dome-opponents">'+opponents+'</div>'+options+'<button class="btn primary" id="dome-fight" '+(chosen.length!==2?'disabled':'')+'>COMMENCER LE MATCH ▶</button>':nextLabel+'<div><button class="btn primary" id="'+(snap.status==='won'&&!finished?'dome-next':'dome-finish')+'">'+(snap.status==='won'&&!finished?'TABLEAU DU TOUR SUIVANT ▶':'MES DÉFIS')+'</button></div>';
+ $('#battle-controls').innerHTML='<section class="terminal dome-panel"><h3>DÔME DE COMBAT · 16 PARTICIPANTS</h3><div class="dome-tree">'+bracket+'</div>'+controls+'</section>';
+ $$('[data-dome-pick]').forEach(button=>button.onclick=async()=>{
+  const index=Number(button.dataset.domePick),current=Array.isArray(dome.chosen)?[...dome.chosen]:[0,1];
+  if(current.includes(index)){if(current.length>1)current.splice(current.indexOf(index),1);}
+  else if(current.length<2)current.push(index);else current.splice(1,1,index);
+  dome.chosen=current;await store();renderBattle();
+ });
  if($('#dome-fight'))$('#dome-fight').onclick=async()=>{
-  const lead=Number(run.dome.leadIndex)||0;
-  if(lead>0&&lead<engine.player.party.length){
-   const party=engine.player.party,first=party[0],chosen=party[lead];
-   const activeIndex=engine.player.active.indexOf(first.id);
-   if(activeIndex<0)throw Error('Pokémon actif introuvable.');
-   first.active=false;chosen.active=true;
-   engine.player.active[activeIndex]=chosen.id;
-   [party[0],party[lead]]=[party[lead],party[0]];
-   [engine.sets[0],engine.sets[lead]]=[engine.sets[lead],engine.sets[0]];
-  }
-  run.dome.leadIndex=0;run.dome.phase='battle';await saveBattleSession();renderBattle();
+  const indices=dome.chosen||[0,1];domeSelectTwo(run.team,indices);
+  const selected=indices.map(i=>engine.player.party[i]);
+  if(selected.some(x=>!x))throw Error('Sélection du Dôme invalide.');
+  engine.player.party=selected;
+  engine.player.active=[selected[0].id];selected.forEach((p,i)=>p.active=i===0);
+  engine.sets=domeSelectTwo(run.team,indices);
+  engine.originalConfig.team=engine.sets;
+  const cpuIndices=[0,1]; // Opponent chooses two from the registered trio; detailed ROM scoring remains to port.
+  engine.opponent.party=cpuIndices.map(i=>engine.opponent.party[i]);
+  engine.opponent.active=[engine.opponent.party[0].id];engine.opponent.party.forEach((p,i)=>p.active=i===0);
+  dome.phase='battle';await saveBattleSession();renderBattle();
  };
- if($('#dome-next'))$('#dome-next').onclick=()=>begin(true);
- if($('#dome-finish'))$('#dome-finish').onclick=()=>nav('mode');
+ if($('#dome-next'))$('#dome-next').onclick=async()=>{
+  domeResolveRound(dome,true);
+  await store();await begin(true);
+ };
+ if($('#dome-finish'))$('#dome-finish').onclick=async()=>{
+  if(!dome.champion)domeResolveRound(dome,snap.status==='won');
+  await store();nav('mode');
+ };
 }
 function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state.runs.find(r=>r.id===activeRun);$('#battle-mode').textContent=(run?.facility==='factory'?'USINE · ':run?.facility==='dome'?'DÔME · ':MODES[state.mode][0]+' · ')+'NIVEAU '+(state.levelMode==='50'?'50':'LIBRE');$('#battle-heading').textContent=snap.trainer;$('#streak-counter').textContent=run?.facility==='dome'?('TOUR '+Math.min(4,(run.victories||0)+1)+'/4'):`${snap.streak} VICTOIRE(S) · ${snap.round}/7`;
  const enemy=engine.active('opponent'),own=engine.active('player');$('#battle-arena').innerHTML=`<div class="battle-row enemy ${enemy.length>1?'double':''}">${enemy.map(m=>combatMon(m,false)).join('')}</div><div class="battle-row player ${own.length>1?'double':''}">${own.map(m=>combatMon(m,true)).join('')}</div>`;
