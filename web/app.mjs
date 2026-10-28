@@ -104,7 +104,7 @@ async function begin(continuing=false){
  const errors=validateTeam(team,isDome?'single':state.mode,state.levelMode,D);if(errors.length){if(!isFactory)nav('team');notify(errors[0]);return;}
  try{
   if(run&&run.engine.status!=='won')throw Error('Seul un défi victorieux peut continuer.');
-  const nextEngine=new TowerEngine(D,{mode:isDome?'single':state.mode,levelMode:state.levelMode,team:deepCopy(team),streak:run?run.victories:0,trainerHistory:run?.trainerHistory||[]});
+  const nextEngine=new TowerEngine(D,{mode:isDome?'single':state.mode,levelMode:state.levelMode,team:deepCopy(team),streak:run?run.victories:0,trainerHistory:run?.trainerHistory||[],deferEntryEffects:isDome});
   if(run){run.pastBattles.push({number:run.engine.streak+1,trainer:run.engine.trainer,log:run.engine.log});engine=nextEngine;actions={};}
   else{engine=nextEngine;const created=createRun(state,engine);if(isFactory){created.facility='factory';created.name='Usine · '+new Date().toISOString().slice(0,10);created.factory=beginFactoryDraft(factoryPool,factorySelection);created.team=deepCopy(created.factory.team);}if(isDome){created.facility='dome';created.name='Dôme · '+new Date().toISOString().slice(0,10);created.dome=createDomeEntrants(created.team,state.levelMode);}activeRun=created.id;state.runs.push(created);actions={};}
   if(isDome){const current=state.runs.find(x=>x.id===activeRun);if(current.dome?.participants)applyDomeOpponent(engine,current.dome);current.dome.phase='preview';current.dome.resolvedBattle=false;}
@@ -181,18 +181,14 @@ function renderDomeScreen(run,snap){
   dome.chosen=current;await store();renderBattle();
  });
  if($('#dome-fight'))$('#dome-fight').onclick=async()=>{
-  const indices=dome.chosen||[0,1];domeSelectTwo(run.team,indices);
-  const selected=indices.map(i=>engine.player.party[i]);
-  if(selected.some(x=>!x))throw Error('Sélection du Dôme invalide.');
-  engine.mode=run.mode;
-  engine.player.party=selected;
-  engine.player.active=run.mode==='double'?selected.map(p=>p.id):[selected[0].id];selected.forEach((p,i)=>p.active=run.mode==='double'||i===0);
-  engine.sets=domeSelectTwo(run.team,indices);
-  engine.originalConfig.team=engine.sets;
-  const cpuIndices=domeCpuSelection(domeNextOpponent(dome).team,run.team,D,TYPE_CHART);
-  engine.opponent.party=cpuIndices.map(i=>engine.opponent.party[i]);
-  engine.opponent.active=run.mode==='double'?engine.opponent.party.map(p=>p.id):[engine.opponent.party[0].id];engine.opponent.party.forEach((p,i)=>p.active=run.mode==='double'||i===0);
-  dome.phase='battle';await saveBattleSession();renderBattle();
+  const button=$('#dome-fight');button.disabled=true;
+  try{
+   const indices=dome.chosen||[0,1];domeSelectTwo(run.team,indices);
+   const cpuIndices=domeCpuSelection(domeNextOpponent(dome).team,run.team,D,TYPE_CHART);
+   engine.startDomeBattle(indices,cpuIndices,run.mode);
+   dome.phase='battle';
+   await saveBattleSession();renderBattle();
+  }catch(error){notify('Début du combat impossible : '+error.message);button.disabled=false;}
  };
  if($('#dome-next'))$('#dome-next').onclick=async()=>{
   await begin(true);
