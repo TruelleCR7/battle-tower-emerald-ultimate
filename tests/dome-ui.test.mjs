@@ -52,3 +52,9 @@ test('Dome reception, profile and both battle formats are available',()=>{
  assert.match(app,/run\.mode==='double'\?selected\.map/);
  assert.match(app,/state\.facility==='dome'\?'single':state\.mode/);
 });
+
+test('New challenge button navigates to teambuilder and surfaces errors',()=>{
+ assert.match(app,/#to-team'\)\.onclick=\(\)=>/);
+ assert.match(app,/nav\('team'\)/);
+ assert.match(app,/Impossible d’ouvrir le nouveau défi/);
+});
