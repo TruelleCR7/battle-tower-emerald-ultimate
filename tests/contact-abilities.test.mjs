@@ -49,3 +49,58 @@ test('Fire-type Pokémon cannot be burned by Flame Body',()=>{
  e.contactEffects(p,o,'TACKLE',{makesContact:true});
  assert.equal(p.status,'');
 });
+
+test('Emerald Effect Spore triggers only on its ten-percent contact roll',()=>{
+ const {e,p,o}=battle('EFFECT_SPORE',()=>.2);
+ e.contactEffects(p,o,'TACKLE',{makesContact:true});
+ assert.equal(p.status,'');
+ e.rng=()=>0;e.contactEffects(p,o,'TACKLE',{makesContact:true});
+ assert.equal(p.status,'poison');
+});
+test('Synchronize reflects opponent-inflicted paralysis and poison exactly once',()=>{
+ for(const status of ['burn','paralyze','poison']){
+  const {e,p,o}=battle('SYNCHRONIZE');
+  assert.equal(e.inflict(o,status,p),true);
+  assert.equal(o.status,status);
+  assert.equal(p.status,status);
+  assert.equal(e.log.filter(x=>x.text.includes('Synchro')).length,1);
+ }
+});
+test('Synchronize turns badly poisoned status into regular poison in Gen III',()=>{
+ const {e,p,o}=battle('SYNCHRONIZE');
+ e.inflict(o,'toxic',p);
+ assert.equal(o.status,'toxic');
+ assert.equal(p.status,'poison');
+});
+test('Synchronize does not reflect self-inflicted or weather status',()=>{
+ const {e,p,o}=battle('SYNCHRONIZE');
+ e.inflict(o,'burn');
+ assert.equal(o.status,'burn');
+ assert.equal(p.status,'');
+});
+test('Synchronize respects status immunity and existing ailments',()=>{
+ const c=battle('SYNCHRONIZE');
+ c.e.data.species.p.types=['FIRE'];
+ c.e.inflict(c.o,'burn',c.p);
+ assert.equal(c.p.status,'');
+ const d=battle('SYNCHRONIZE');
+ d.p.status='sleep';
+ d.e.inflict(d.o,'poison',d.p);
+ assert.equal(d.p.status,'sleep');
+});
+test('Synchronize reflection precedes Lum Berry curing in Emerald',()=>{
+ const {e,p,o}=battle('SYNCHRONIZE');
+ o.item='LUM_BERRY';
+ e.inflict(o,'paralyze',p);
+ assert.equal(o.status,'');
+ assert.equal(o.item,'NONE');
+ assert.equal(p.status,'paralyze');
+});
+test('Two Synchronize holders do not reflect recursively',()=>{
+ const {e,p,o}=battle('SYNCHRONIZE');
+ p.ability='SYNCHRONIZE';
+ e.inflict(o,'burn',p);
+ assert.equal(o.status,'burn');
+ assert.equal(p.status,'burn');
+ assert.equal(e.log.filter(x=>x.text.includes('Synchro')).length,1);
+});
