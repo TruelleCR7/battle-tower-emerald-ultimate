@@ -7,7 +7,7 @@ for p in (R/'web').iterdir():
 shutil.copytree(R/'assets/icons',out/'icons',dirs_exist_ok=True)
 (out/'manifest.webmanifest').write_text(json.dumps({'name':'Battle Tower Emerald','short_name':'Battle Tower','start_url':'./','scope':'./','display':'standalone','background_color':'#141e27','theme_color':'#192733','icons':[{'src':f'./icons/icon-{n}.png','sizes':f'{n}x{n}','type':'image/png'} for n in [192,512]]}))
 shell=['./','./index.html','./style.css','./app.mjs','./engine.mjs','./factory.mjs','./frontier.mjs','./storage.mjs','./runs.mjs','./battle-ui.mjs','./battle-stats.mjs','./battle-presentation.mjs','./ai_emerald_scripted.mjs','./data/catalog.json','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./conformite.html']
-cache_version='battle-tower-v'+hashlib.sha256(b''.join((out/p.removeprefix('./')).read_bytes() for p in shell)).hexdigest()[:12]
+cache_version='battle-tower-v'+hashlib.sha256(b''.join((out/p.removeprefix('./')).read_bytes() for p in shell if (out/p.removeprefix('./')).is_file())).hexdigest()[:12]
 (out/'sw.js').write_text('''const CACHE='''+json.dumps(cache_version)+''';const SHELL='''+json.dumps(shell)+''';
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('battle-tower-v')&&k!==CACHE)await caches.delete(k);await self.clients.claim()})()));
