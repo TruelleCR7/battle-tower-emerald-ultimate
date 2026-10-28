@@ -89,3 +89,12 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .dome-opponents{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
 .dome-opponent{display:flex;align-items:center;gap:6px;padding:8px;border:2px solid #789a8a;background:#f1f4e5}
 @media(max-width:560px){.dome-bracket{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.dome-lead-picker{margin:16px 0;padding:14px;border:3px solid #507a67;background:#e5eedb;color:#173d34;text-align:left}
+.dome-lead-picker h3{margin:0 0 8px}
+.dome-lead-picker p{font-size:12px;margin:0 0 12px}
+.dome-lead-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.dome-lead-option{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;min-width:0;padding:10px 5px;border:2px solid #71948a;background:#f8f9ed;color:#1c4137;cursor:pointer}
+.dome-lead-option.chosen{border:3px solid #39795c;background:#c9e9b7;box-shadow:inset 0 0 0 2px #fff}
+.dome-lead-option small{font-size:10px;font-weight:800}
+@media(max-width:450px){.dome-lead-options{grid-template-columns:1fr}.dome-lead-option{flex-direction:row;justify-content:space-between}}
