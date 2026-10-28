@@ -1,1 +1,54 @@
 .pike-main{max-width:1120px;margin:auto;padding:22px 18px 90px;display:grid;gap:16px}.pike-head,.pike-panel{padding:24px;border:2px solid #678c7d;background:#f3efdc;color:#223c35;box-shadow:5px 5px 0 #294c3f}.pike-head{display:flex;justify-content:space-between;gap:20px;align-items:center}.pike-head h2{margin:0 0 8px}.pike-head #pike-progress{display:grid;gap:8px;min-width:180px}.pike-panel h3{margin:10px 0}.pike-builder,.pike-stats,.pike-commands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:15px 0}.pike-mon,.pike-commands fieldset{background:#fffdf5;border:2px solid #a7bdb0;padding:14px;display:grid;gap:6px;min-width:0}.pike-mon span,.pike-mon small{font-size:.85rem}.pike-doors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:20px 0}.pike-door{min-height:225px;border:4px solid #8f6345;border-radius:80px 80px 8px 8px;background:linear-gradient(135deg,#a14f48,#5b2532);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;box-shadow:5px 6px 0 #4d4d44;font-weight:bold}.pike-door span{font-size:3.4rem}.pike-door:hover,.pike-door:focus-visible{background:linear-gradient(135deg,#ce8261,#874754);transform:translateY(-3px)}.pike-door small{font-size:.78rem}.pike-hint{background:#e3e9d5;padding:16px;border-left:5px solid #638470;font-style:italic}.pike-actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}.pike-builder label,.pike-commands label,.pike-panel>label{display:grid;gap:6px;font-weight:bold}.pike-panel select{width:100%;max-width:100%;padding:10px;border:2px solid #8daba1;background:white;color:#263a34}.pike-opponent{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.pike-combatlog{max-height:320px;overflow:auto;background:#e9f0e6;padding:10px}.pike-combatlog p{margin:7px 0;border-bottom:1px dotted #9dad9f}.pike-history{margin:20px 0}#pike-message{font-weight:700;color:#b35434}.pike-panel.hidden{display:none}@media(max-width:700px){.pike-head{display:block}.pike-builder,.pike-stats,.pike-commands,.pike-opponent{grid-template-columns:1fr}.pike-doors{gap:6px}.pike-door{min-height:165px;border-radius:55px 55px 8px 8px}.pike-door span{font-size:2.1rem}.pike-main{padding:10px}.pike-panel,.pike-head{padding:14px}}
+
+/* Battle Pike: intentionally chunky, pixel-grid scenery. No emoji placeholders. */
+.pike-scene,.pike-event-scene{position:relative;overflow:hidden;border:6px solid #342d49;background:repeating-linear-gradient(90deg,#61536a 0 24px,#554962 24px 48px);padding:24px 20px 28px;box-shadow:inset 0 0 0 5px #97849a;color:#f7ebdc;text-align:center}
+.pike-scene:before,.pike-event-scene:before{content:"";position:absolute;bottom:0;left:0;right:0;height:57px;background:repeating-linear-gradient(90deg,#474354 0 32px,#655a69 32px 64px);border-top:8px solid #a28b99;z-index:0}
+.pike-scene>* ,.pike-event-scene>*{position:relative;z-index:1}
+.pike-scene-banner{display:flex;gap:12px;justify-content:space-between;text-align:left;color:#f6df9a;font:900 .77rem monospace;letter-spacing:1px}
+.pike-scene h3{font-size:1.6rem;text-shadow:3px 3px #2e273b;margin:18px 0}
+.pike-scene .pike-hint{color:#263a33;text-shadow:none;border:5px solid #bda386;background:#f0e1b9;box-shadow:5px 5px 0 #342d49;max-width:760px;margin:15px auto;padding:14px}
+.pike-scene .pike-doors{position:relative;z-index:1;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:12px;max-width:800px;margin:auto}
+.pike-scene .pike-door{background:transparent;border:0;box-shadow:none;min-height:0;border-radius:0;padding:0;transform:none;display:flex;gap:0;outline-offset:4px;color:#f9edcc}
+.pike-scene .pike-door:hover,.pike-scene .pike-door:focus-visible{background:transparent;transform:translateY(-7px)}
+.pike-door-art{display:block;width:min(100%,170px);height:auto;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(7px 6px 0 #29273c)}
+.pike-scene .pike-door:hover .pike-door-art{filter:brightness(1.22) drop-shadow(6px 6px 0 #30253b)}
+.pike-scene .pike-door b{background:#e5c9a4;padding:5px 16px;color:#352b3d;margin-top:0;border:3px solid #453446;font-size:.85rem}
+.pike-scene .pike-door small{color:#ffedb2;font-weight:900;margin:8px 0}
+.pike-scene-foot{font-size:.8rem;color:#f2dcc4}
+.pike-event-scene{min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px}
+.pike-event-glyph{font:900 4rem monospace;line-height:1;color:#f7d78e;text-shadow:6px 5px #292338}
+.pike-event-scene h3{margin:0;color:#ffebbb}
+.pike-event-scene p{max-width:680px}
+.pike-battle-shell{border:5px solid #39374e;background:#e7e9d5;box-shadow:6px 6px 0 #24372f;color:#273d37;overflow:hidden}
+.pike-battle-top{background:#3a344f;color:#f4eddb;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 14px;font-weight:900;font-size:.82rem;letter-spacing:.04em}
+.pike-arena{min-height:380px;position:relative;overflow:hidden;padding:18px 18px 25px;background:linear-gradient(#92889d 0%,#c4bbbd 52%,#c8bd9b 53%,#aaa485 70%,#8c9176 100%)}
+.pike-arena:after{content:"";position:absolute;bottom:0;left:0;right:0;height:20%;background:repeating-linear-gradient(90deg,#858d76 0 28px,#7b8a70 28px 56px);opacity:.35;pointer-events:none}
+.pike-battle-background{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 60px,#77718928 60px 64px)}
+.pike-battle-pillar{position:absolute;top:0;width:40px;height:100%;border-left:9px solid #716779;border-right:9px solid #978899;background:repeating-linear-gradient(0deg,#8e8492 0 18px,#756d80 18px 36px);opacity:.46}
+.pike-pillar-left{left:7%}.pike-pillar-right{right:7%}
+.pike-battle-row{position:relative;z-index:2;display:flex;justify-content:space-around;align-items:flex-end;gap:10px;min-height:162px}
+.pike-battle-enemy{margin-left:22%;min-height:170px}.pike-battle-player{margin-right:22%;min-height:173px}
+.pike-battler{position:relative;flex:1;max-width:270px;min-width:0;display:flex;flex-direction:column;justify-content:end;align-items:center}
+.pike-battler-sprite{width:120px;height:100px;display:flex;align-items:flex-end;justify-content:center;position:relative}
+.pike-battler-sprite:after{content:"";position:absolute;bottom:1px;z-index:-1;left:0;right:0;height:16px;border-radius:50%;background:#49514363;filter:blur(2px)}
+.pike-sprite{width:110px;height:100px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(3px 4px 0 #2c344263)}
+.pike-ally .pike-sprite{width:125px;height:115px}.pike-ally .pike-battler-sprite{height:117px;width:140px}
+.pike-battler-details{background:#f9f4df;border:3px solid #4b5149;border-radius:5px;box-shadow:4px 4px 0 #343849;padding:7px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;width:min(220px,100%);font-size:.78rem}
+.pike-battler-details strong{width:100%;display:flex;justify-content:space-between}.pike-battler-details small{font-size:.72rem}
+.pike-health-track{width:100%;height:9px;border:2px solid #4b5149;background:#b8a99f}
+.pike-health-track span{display:block;height:100%}
+.pike-stage-tag{display:inline-block;border:1px solid #a58c71;background:#e3d19d;font-size:.67rem;padding:1px 3px}
+.pike-dialogue{background:#f8f1d8;border-top:4px solid #414a51;border-bottom:4px solid #414a51;padding:15px 18px;font-weight:700;min-height:50px}
+.pike-dialogue-separator{color:#ad786a}
+.pike-battle-shell .pike-commands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:#e4e9dd;padding:12px;gap:10px;margin:0}
+.pike-battle-shell .pike-commands h3{grid-column:1/-1;margin:0;font-size:1rem}
+.pike-battle-shell .pike-commands fieldset{background:#fcf9e9;box-shadow:3px 3px 0 #a9b6a6;border:3px solid #637f72}
+.pike-action-grid{display:grid;gap:8px}.pike-move-summary{display:flex;gap:6px;flex-wrap:wrap}
+.pike-move-badge{background:#d6e8d9;border:2px solid #7f9b87;padding:5px 8px;font-size:.72rem;font-weight:900}
+.pike-move-badge small{font-weight:400;color:#456454}
+.pike-battle-actions{padding:12px;background:#e4e9dd}
+.pike-log-panel{padding:12px;background:#f3efdc;border-top:2px solid #829688}
+.pike-log-panel summary{cursor:pointer;font-weight:900}
+.pike-log-panel .pike-combatlog{background:#fffdf4}
+.pike-combatlog small{font-size:.7rem;color:#79877a;margin-right:7px}
+@media(max-width:700px){.pike-scene{padding:14px 6px}.pike-scene .pike-doors{gap:3px}.pike-door-art{width:100%}.pike-scene-banner{font-size:.62rem}.pike-scene .pike-door b{font-size:.64rem;padding:4px}.pike-scene .pike-door small{font-size:.64rem}.pike-battle-shell .pike-commands{grid-template-columns:1fr}.pike-battle-top{font-size:.68rem}.pike-arena{padding:12px 5px;min-height:340px}.pike-battle-enemy{margin-left:9%}.pike-battle-player{margin-right:9%}.pike-battler-sprite{width:94px;height:80px}.pike-sprite{width:94px;height:80px}.pike-ally .pike-sprite,.pike-ally .pike-battler-sprite{width:105px;height:100px}.pike-battler-details{padding:5px;font-size:.68rem}.pike-battler-details small{font-size:.62rem}}
