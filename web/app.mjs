@@ -2,10 +2,11 @@ import {STAT_KEYS,STAT_NAMES,stageRatio,effectiveStat} from './battle-stats.mjs'
 import {BattlePresenter,preferences} from './battle-presentation.mjs';
 import {RunStore,migrateState,createRun,captureRun,contextKey} from './runs.mjs';
 import {TYPES,typeName,percent,targetPlan,groupedLog,statChanges} from './battle-ui.mjs';
-import {officialSet} from './frontier.mjs';
+import {officialSet,trainerTeam} from './frontier.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,DOME_ROUNDS} from './dome.mjs';
 import {rentalPool,beginFactoryDraft,proposeFactoryExchange,resolveFactoryExchange} from './factory.mjs';
 import {exportSave,validateImport,restoreEngine} from './storage.mjs';
-import {TowerEngine,validateTeam,statsFor} from './engine.mjs';
+import {TowerEngine,validateTeam,statsFor,makeMon} from './engine.mjs';
 const $=sel=>document.querySelector(sel), $$=sel=>[...document.querySelectorAll(sel)];
 const STORE='battle-tower-emerald-v05';const LEGACY_STORE='battle-tower-simple-v03';const deepCopy=o=>JSON.parse(JSON.stringify(o));
 const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -70,6 +71,24 @@ function renderEdit(){const p=editing;$('#species-search').value='';$('#species-
 }
 function saveEdit(){let p=deepCopy(editing);p.ability=$('[data-field=ability]').value;p.item=$('[data-field=item]').value;p.nature=$('[data-field=nature]').value;p.level=Number($('[data-field=level]').value);p.moves=[0,1,2,3].map(i=>$(`[data-field=move${i}]`).value);p.evs=$$('#edit-advanced [data-ev]').map(e=>Number(e.value));p.ivs=$$('#edit-advanced [data-iv]').map(e=>Number(e.value));if(new Set(p.moves).size!==p.moves.length){$('#edit-error').textContent='Chaque capacité doit être différente.';return;}if(p.evs.some(x=>!Number.isInteger(x)||x<0||x>255)||p.evs.reduce((a,b)=>a+b,0)>510){$('#edit-error').textContent='EV : 0 à 255/stat et 510 maximum au total.';return;}if(p.ivs.some(x=>!Number.isInteger(x)||x<0||x>31)){$('#edit-error').textContent='IV : 0 à 31.';return;}const candidate=[...state.team];candidate[editorSlot]=p;const errs=validateTeam(candidate,state.mode,state.levelMode,D).filter(x=>!x.includes('Ce mode nécessite'));if(errs.length){$('#edit-error').textContent=errs.join(' · ');return;}state.team[editorSlot]=p;store();$('#edit-layer').classList.add('hidden');renderTeam();}
 function partner(){if(state.mode!=='link')return undefined;return (state.partner||[]).map(setFor)}
+function createDomeEntrants(team,levelMode){
+ const used=new Set(),result=[];
+ for(let i=0;i<15;i++){
+  let trainer;for(let attempts=0;attempts<200;attempts++){const candidate=D.trainers[Math.floor(Math.random()*D.trainers.length)];if(candidate&&!used.has(candidate.id)){trainer=candidate;break;}}
+  if(!trainer)throw Error('Impossible de générer les participants du Dôme.');
+  used.add(trainer.id);
+  result.push({name:trainer.name+' · '+trainer.class.replaceAll('_',' '),trainerId:trainer.id,team:trainerTeam(D,trainer,3,levelMode,Math.random)});
+ }
+ return createDomeTournament(team,result,D);
+}
+function applyDomeOpponent(battle,dome){
+ const opponent=domeNextOpponent(dome);if(!opponent)throw Error('Adversaire du Dôme introuvable.');
+ battle.trainer=opponent.name;
+ battle.trainerData=D.trainers[opponent.trainerId];
+ battle.opponent.party=opponent.team.map(p=>makeMon(p,D,'cpu',battle.level));
+ battle.opponent.active=[battle.opponent.party[0].id];
+ battle.opponent.party[0].active=true;
+}
 async function begin(continuing=false){
  if(storageFailed)return;const run=continuing&&state.runs.find(r=>r.id===activeRun);const facility=run?.facility||state.facility,isFactory=facility==='factory',isDome=facility==='dome';const team=run?(run.factory?.team||run.team):isFactory?factorySelection.map(i=>factoryPool[i]):state.team;
  if(isFactory&&!run&&factorySelection.length!==3){notify('Sélectionne trois Pokémon de location.');return;}
@@ -78,8 +97,8 @@ async function begin(continuing=false){
   if(run&&run.engine.status!=='won')throw Error('Seul un défi victorieux peut continuer.');
   const nextEngine=new TowerEngine(D,{mode:state.mode,levelMode:state.levelMode,team:deepCopy(team),streak:run?run.victories:0,trainerHistory:run?.trainerHistory||[]});
   if(run){run.pastBattles.push({number:run.engine.streak+1,trainer:run.engine.trainer,log:run.engine.log});engine=nextEngine;actions={};}
-  else{engine=nextEngine;const created=createRun(state,engine);if(isFactory){created.facility='factory';created.name='Usine · '+new Date().toISOString().slice(0,10);created.factory=beginFactoryDraft(factoryPool,factorySelection);created.team=deepCopy(created.factory.team);}if(isDome){created.facility='dome';created.name='Dôme · '+new Date().toISOString().slice(0,10);created.dome={phase:'preview'};}activeRun=created.id;state.runs.push(created);actions={};}
-  if(isDome){const current=state.runs.find(x=>x.id===activeRun);current.dome??={};current.dome.phase='preview';}
+  else{engine=nextEngine;const created=createRun(state,engine);if(isFactory){created.facility='factory';created.name='Usine · '+new Date().toISOString().slice(0,10);created.factory=beginFactoryDraft(factoryPool,factorySelection);created.team=deepCopy(created.factory.team);}if(isDome){created.facility='dome';created.name='Dôme · '+new Date().toISOString().slice(0,10);created.dome=createDomeEntrants(created.team,state.levelMode);}activeRun=created.id;state.runs.push(created);actions={};}
+  if(isDome){const current=state.runs.find(x=>x.id===activeRun);if(current.dome?.participants)applyDomeOpponent(engine,current.dome);current.dome.phase='preview';}
   switchPrompt=null;await saveBattleSession();nav('battle');
  }catch(e){notify(e.message);}
 }
