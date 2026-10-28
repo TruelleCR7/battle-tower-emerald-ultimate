@@ -46,3 +46,9 @@ test('Dome CPU picks two distinct registered Pokémon',()=>{
  const result=domeCpuSelection(party,[{species:'D',moves:['HIT']}],data,{NORMAL:{}},()=>0.1);
  assert.equal(result.length,2);assert.notEqual(result[0],result[1]);
 });
+
+test('Dome reception, profile and both battle formats are available',()=>{
+ for(const label of ['ADVERSAIRE','TABLEAU','COMBATTRE','ENREGISTRER','REPOS','PARTIR','PROFIL DU DRESSEUR'])assert.ok(app.includes(label),label);
+ assert.match(app,/run\.mode==='double'\?selected\.map/);
+ assert.match(app,/state\.facility==='dome'\?'single':state\.mode/);
+});
