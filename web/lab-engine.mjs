@@ -1,7 +1,7 @@
 // Isolated two-sided manual battle harness. Does not read or write player saves.
 import {TowerEngine,makeMon} from './engine.mjs';
 const clone=o=>structuredClone(o);
-export function createLabBattle(data,{mode='single',player,opponent,seed=12345}){
+export function createLabBattle(data,{mode='single',player,opponent,seed=12345,deferEntryEffects=false}){
  if(!['single','double'].includes(mode))throw Error('Format du laboratoire inconnu.');
  const minimum=mode==='double'?2:1;
  for(const [side,team] of [['player',player],['opponent',opponent]]){
@@ -21,7 +21,7 @@ export function createLabBattle(data,{mode='single',player,opponent,seed=12345})
  battle.initializeSide('player');
  battle.initializeSide('opponent');
  battle.write('Laboratoire : les deux équipes sont sous ton contrôle.');
- battle.entryEffects([...battle.active('opponent'),...battle.active('player')]);
+ if(!deferEntryEffects)battle.entryEffects([...battle.active('opponent'),...battle.active('player')]);
  return battle;
 }
 export function labRequiredActions(battle){
