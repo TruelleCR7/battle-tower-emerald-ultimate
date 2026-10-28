@@ -64,3 +64,14 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .factory-summary-moves li{display:flex;flex-direction:column;padding:10px;background:#dce9d5;border:1px solid #a2b6a3}
 .factory-summary-moves small{margin-top:4px;font-size:10px}
 @media(max-width:480px){.factory-summary-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.factory-summary-head .pokemon-img{width:80px;height:80px}.factory-summary-moves{grid-template-columns:1fr}}
+
+/* Emerald-inspired Factory summary and single-row selection layout. */
+.factory-pick-row{display:flex;align-items:stretch;gap:8px;width:100%;margin:0 0 7px}
+.factory-pick-row .bench-card{flex:1;min-width:0;margin:0;text-align:left}
+.factory-pick-row .factory-detail{flex:0 0 auto;margin:0;padding:8px 12px;border:2px solid #43665a;background:#dce9d5;color:#193f37;font-weight:800;letter-spacing:.04em;min-height:48px}
+.factory-summary-dialog{background:repeating-linear-gradient(0deg,#e9efdb,#e9efdb 5px,#e3ebd6 6px);border:5px solid #416c62;box-shadow:inset 0 0 0 3px #b7c7a3,0 14px 40px #071f1a80}
+.factory-summary-banner{display:flex;justify-content:space-between;gap:8px;background:#426f66;color:#f8f8e8;padding:10px 12px;margin:-10px -10px 15px;font-weight:800;letter-spacing:.06em}
+.factory-summary-banner span{font-size:10px;align-self:center}
+.factory-summary-section{background:#bfd4bd;border-left:5px solid #47736a;padding:7px 10px;color:#183d35;letter-spacing:.05em}
+.factory-summary-stats>div,.factory-summary-moves li{background:#f7f8eb;border:2px solid #a1b7a2}
+@media(max-width:480px){.factory-pick-row{gap:5px}.factory-pick-row .factory-detail{padding:7px;font-size:9px}.factory-summary-banner{font-size:12px}}
