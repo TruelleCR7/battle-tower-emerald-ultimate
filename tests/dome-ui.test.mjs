@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,startNextDomeTournament,DOME_PAIRS} from '../web/dome.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,startNextDomeTournament,domeBrainTier,domeTuckerTeam,placeDomeBrainInFinal,DOME_BRAIN_ID,DOME_PAIRS} from '../web/dome.mjs';
 const app=readFileSync(new URL('../web/app.mjs',import.meta.url),'utf8');
 const html=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
 test('Dome is selectable and tournament screens are wired',()=>{
@@ -90,4 +90,59 @@ test('Dome champion screen offers next tournament and preserves challenge progre
  assert.match(app,/id="dome-next-tournament"/);
  assert.match(app,/run\.dome=createDomeEntrants\(run\.team,run\.levelMode,previous\)/);
  assert.match(app,/await begin\(true\)/);
+});
+
+test('Takim only challenges Solo tournament 5, 10 and later multiples of five',()=>{
+ assert.equal(domeBrainTier(1,'single'),null);
+ assert.equal(domeBrainTier(4,'single'),null);
+ assert.equal(domeBrainTier(5,'single'),'silver');
+ assert.equal(domeBrainTier(5,'double'),null);
+ assert.equal(domeBrainTier(10,'single'),'gold');
+ assert.equal(domeBrainTier(15,'single'),'gold');
+});
+test('Takim silver and gold squads use correct species, moves, items and IVs',()=>{
+ const species=Object.fromEntries(['SWAMPERT','SALAMENCE','CHARIZARD','METAGROSS','LATIAS'].map(k=>[k,{abilities:['PRESSURE']}]));
+ const moves=['SURF','EARTHQUAKE','ICE_BEAM','COUNTER','BRICK_BREAK','DRAGON_CLAW','AERIAL_ACE','OVERHEAT','ROCK_SLIDE','MIRROR_COAT','PSYCHIC','METEOR_MASH','PROTECT','THUNDERBOLT','CALM_MIND','REST'];
+ const d={species,moveData:Object.fromEntries(moves.map(k=>[k,{type:'NORMAL',power:40}]))};
+ const silver=domeTuckerTeam('silver',d,50),gold=domeTuckerTeam('gold',d,70);
+ assert.deepEqual(silver.map(m=>m.species),['SWAMPERT','SALAMENCE','CHARIZARD']);
+ assert.deepEqual(gold.map(m=>m.species),['SWAMPERT','METAGROSS','LATIAS']);
+ assert.deepEqual(silver.map(m=>m.item),['FOCUS_BAND','LUM_BERRY','WHITE_HERB']);
+ assert.deepEqual(gold.map(m=>m.item),['LEFTOVERS','QUICK_CLAW','CHESTO_BERRY']);
+ assert.deepEqual(silver[0].moves,['SURF','EARTHQUAKE','ICE_BEAM','COUNTER']);
+ assert.deepEqual(gold[2].moves,['THUNDERBOLT','PSYCHIC','CALM_MIND','REST']);
+ assert.equal(silver[0].ivs[0],20);
+ assert.equal(gold[0].ivs[0],31);
+ assert.equal(gold[0].level,70);
+});
+test('Takim is placed on opposing side and always reaches the championship final',()=>{
+ const opponents=Array.from({length:14},(_,i)=>({name:'CPU '+i,team:team(i+1)}));
+ opponents.push({id:DOME_BRAIN_ID,name:'Takim',brain:true,team:team(15)});
+ const dome=createDomeTournament(team(0),opponents,data);
+ placeDomeBrainInFinal(dome,'silver');
+ const left=dome.rounds[0].slice(0,4).flat();
+ assert.notEqual(left.includes('player'),left.includes(DOME_BRAIN_ID));
+ for(let i=0;i<3;i++){
+  assert.notEqual(domeNextOpponent(dome)?.id,DOME_BRAIN_ID);
+  domeResolveRound(dome,true,()=>0.99);
+ }
+ assert.equal(domeNextOpponent(dome)?.id,DOME_BRAIN_ID);
+ domeResolveRound(dome,true,()=>0.99);
+ assert.equal(dome.champion,'player');
+});
+test('Takim is not guaranteed victory over the player in the final',()=>{
+ const opponents=Array.from({length:14},(_,i)=>({name:'CPU '+i,team:team(i+1)}));
+ opponents.push({id:DOME_BRAIN_ID,name:'Takim',brain:true,team:team(15)});
+ const dome=createDomeTournament(team(0),opponents,data);
+ placeDomeBrainInFinal(dome,'gold');
+ for(let i=0;i<3;i++)domeResolveRound(dome,true,()=>0.5);
+ domeResolveRound(dome,false,()=>0.5);
+ assert.equal(dome.champion,DOME_BRAIN_ID);
+ assert.equal(dome.phase,'eliminated');
+});
+test('Takim awards Tactics symbols in single mode after a won final',()=>{
+ assert.match(app,/dome\.champion==='player'&&dome\.brainTier/);
+ assert.match(app,/record\.silver=true/);
+ assert.match(app,/record\.gold=true/);
+ assert.match(app,/dome\.symbolAwarded=dome\.brainTier/);
 });
