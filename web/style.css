@@ -125,3 +125,6 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .dome-replay-dialog{width:min(720px,94vw);max-height:85vh;overflow:auto}
 .dome-replay-log{max-height:55vh;overflow:auto;padding:12px;border:2px solid #79958a;background:#e9f0e4}
 .dome-replay-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:12px}
+
+/* Dedicated combat laboratory link in the main game navigation */
+.steps .lab-nav-link{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border:2px solid #739588;background:#214b3b;color:#f2f8ec;font-weight:900;text-decoration:none;white-space:nowrap}.steps .lab-nav-link:hover{background:#367659}
