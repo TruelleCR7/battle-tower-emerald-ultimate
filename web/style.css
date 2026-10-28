@@ -116,3 +116,7 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .dome-profile p{font-size:12px}
 .dome-tree-pair [data-dome-profile]{cursor:pointer}
 .dome-tree-pair [data-dome-profile]:hover{text-decoration:underline;background:#d5e8c9}
+
+/* Battle Dome Frontier Brain and Tactics Symbol presentation */
+.dome-brain-notice{margin:12px 0;padding:12px 14px;border:2px solid #a88538;background:#f9efd1;color:#654712;font-weight:900;letter-spacing:.025em}
+.dome-symbol-earned{margin:12px 0;padding:14px;border:3px double #ad893d;background:#fbf0cf;color:#62460c;font-size:1.05rem;font-weight:900;text-align:center}
