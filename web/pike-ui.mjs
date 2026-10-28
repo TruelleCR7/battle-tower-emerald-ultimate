@@ -1,6 +1,7 @@
 import {createPike,pikePickDoor,pikeResolveEvent,pikeFinishRoom,pikeNextPass,pikeLucyTeam,pikeBrainTier} from './pike.mjs';
 import {createLabBattle} from './lab-engine.mjs';
 import {TowerEngine} from './engine.mjs';
+import {BattlePresenter} from './battle-presentation.mjs';
 const $=x=>document.querySelector(x), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const KEY='battle-tower-emerald-reptile-v1';
 let D,save=null,battle=null;
@@ -139,21 +140,28 @@ function combatView(){
  const required=(battle.pendingReplacements||[]).filter(r=>r.owner==='human');
  if(required.length){
   const r=required[0],bench=battle.bench(r.side,r.owner);
-  stage.innerHTML='<h3>UN POKÉMON EST K.O.</h3><select id="pike-replacement">'+bench.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('')+'</select><button id="pike-send" class="btn primary">ENVOYER</button>';
+  stage.innerHTML='<div class="pike-battle-shell"><div class="pike-battle-top">⚔ REMPLACEMENT APRÈS K.O.</div><div class="pike-arena"><div class="pike-battle-row pike-battle-enemy">'+foes.map(p=>combatant(p,false)).join('')+'</div><div class="pike-battle-row pike-battle-player">'+ours.map(p=>combatant(p,true)).join('')+'</div></div><h3>UN POKÉMON EST K.O.</h3><select id="pike-replacement">'+bench.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('')+'</select><button id="pike-send" class="btn primary">ENVOYER</button></div>';spriteFallback(stage);
   $('#pike-send').onclick=()=>{try{battle.replaceFainted(r.fainted,$('#pike-replacement').value);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
   return;
  }
- stage.innerHTML='<h3>⚔ '+esc(battle.trainer)+' · TOUR '+(battle.turn+1)+'</h3><div class="pike-opponent">'+foes.map(playerCard).join('')+'</div><div class="pike-commands">'+ours.map(p=>{
-  const moves=p.charging?[p.charging.move]:p.moves.filter(k=>p.pp[k]>0);
-  return '<fieldset data-actor="'+p.id+'"><legend>'+esc(p.name)+(p.charging?' · CHARGE':'')+'</legend><label>CAPACITÉ<select data-move>'+moves.map(k=>'<option value="'+k+'">'+esc(D.moveData[k]?.name||k)+' · '+p.pp[k]+' PP</option>').join('')+'</select></label><label>CIBLE<select data-target>'+foes.map(e=>'<option value="'+e.id+'">'+esc(e.name)+'</option>').join('')+'</select></label><label>CHANGEMENT<select data-switch><option value="">— Attaquer —</option>'+battle.bench('player',p.owner).map(q=>'<option value="'+q.id+'">'+esc(q.name)+'</option>').join('')+'</select></label></fieldset>';
- }).join('')+'</div><button class="btn primary" id="pike-turn">EXÉCUTER LE TOUR ▶</button><details open><summary>JOURNAL DU COMBAT</summary><div class="pike-combatlog">'+battle.log.slice(0,24).map(e=>'<p>Tour '+e.turn+' · '+esc(e.text)+'</p>').join('')+'</div></details>';
+ stage.innerHTML='<div class="pike-battle-shell"><div class="pike-battle-top"><span>⚔ '+esc(battle.trainer)+'</span><span>TOUR '+(battle.turn+1)+' · '+(battle.mode==='double'?'DUO':'SOLO')+'</span></div>'+
+ '<div class="pike-arena" aria-label="Terrain de combat Pokémon"><div class="pike-battle-background"><span class="pike-battle-pillar pike-pillar-left"></span><span class="pike-battle-pillar pike-pillar-right"></span></div><div class="pike-battle-row pike-battle-enemy">'+foes.map(p=>combatant(p,false)).join('')+'</div><div class="pike-battle-row pike-battle-player">'+ours.map(p=>combatant(p,true)).join('')+'</div></div>'+
+ '<div class="pike-dialogue" aria-live="polite">'+(battle.log.slice(0,3).map(e=>esc(e.text)).join('<span class="pike-dialogue-separator"> · </span>')||'Un combat commence !')+'</div>'+
+ '<div class="pike-commands"><h3>CHOISIS LES ACTIONS DE TON ÉQUIPE</h3>'+ours.map(p=>{
+  const moves=p.charging?[p.charging.move]:p.moves.filter(k=>p.pp[k]>0&&(!p.choiceLock||p.choiceLock===k));
+  const usable=moves.length?moves:['STRUGGLE'];
+  return '<fieldset data-actor="'+esc(p.id)+'"><legend>'+esc(p.name)+(p.charging?' · ATTAQUE EN PRÉPARATION':'')+'</legend><div class="pike-action-grid"><label>CAPACITÉ<select data-move>'+usable.map(k=>'<option value="'+esc(k)+'">'+esc(D.moveData[k]?.name||k)+' · '+(p.pp[k]??'—')+' PP</option>').join('')+'</select></label><label>CIBLE<select data-target>'+foes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>').join('')+'</select></label><label>CHANGEMENT<select data-switch '+(p.charging?'disabled':'')+'><option value="">— Attaquer —</option>'+battle.bench('player',p.owner).map(q=>'<option value="'+esc(q.id)+'">'+esc(q.name)+'</option>').join('')+'</select></label></div><div class="pike-move-summary">'+usable.map(k=>'<span class="pike-move-badge">'+esc(D.moveData[k]?.name||k)+' <small>'+esc(D.moveData[k]?.category||'')+'</small></span>').join('')+'</div></fieldset>';
+ }).join('')+'</div><div class="pike-battle-actions"><button class="btn primary" id="pike-turn">EXÉCUTER LE TOUR ▶</button></div><details class="pike-log-panel" open><summary>JOURNAL DU COMBAT · '+battle.log.length+' ÉVÉNEMENTS</summary><div class="pike-combatlog">'+battle.log.slice(0,45).map(e=>'<p><small>TOUR '+e.turn+'</small> '+esc(e.text)+'</p>').join('')+'</div></details></div>';
+ spriteFallback(stage);
  $('#pike-turn').onclick=()=>{
   try{
    const choices=[...stage.querySelectorAll('[data-actor]')].map(box=>{
     const actor=box.dataset.actor,to=box.querySelector('[data-switch]').value;
     return to?{actor,type:'switch',to}:{actor,type:'move',move:box.querySelector('[data-move]').value,target:box.querySelector('[data-target]').value};
    });
-   battle.turnActions(choices);persist();render();
+   const oldLogLength=battle.log.length;
+   battle.turnActions(choices);const visualEvents=battle.log.slice(0,battle.log.length-oldLogLength).reverse();persist();render();
+   const arena=$('#pike-stage .pike-arena');if(arena)new BattlePresenter(arena).play(visualEvents,{moveAnimations:true,animationSpeed:'fast',respectReducedMotion:true}).catch(console.error);
   }catch(e){$('#pike-message').textContent='Combat : '+e.message;}
  };
 }
