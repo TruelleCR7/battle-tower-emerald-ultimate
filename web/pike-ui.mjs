@@ -62,7 +62,7 @@ function setupBattle(door){
  const level=save.levelMode==='50'?50:Math.max(60,...save.sets.map(p=>p.level));
  opponents=opponents.map(p=>({...p,level}));
  // Keep all 3 challengers in solo and duo; each side's action logic uses the common engine.
- const e=createLabBattle(D,{mode,player:save.sets,opponent:opponents,seed:Math.floor(Math.random()*0xffffffff)});
+ const e=createLabBattle(D,{mode,player:save.sets,opponent:opponents,seed:Math.floor(Math.random()*0xffffffff),deferEntryEffects:true});
  e.player.party=structuredClone(save.party);
  e.player.party.forEach(p=>{p.active=false;p.owner='human';p.guarded=false;p.flinched=false;p.charging=null;});
  e.player.active=[];
