@@ -94,6 +94,32 @@ export class TowerEngine {
   this.initializeSide('player');this.initializeSide('opponent');
   this.write(`Défi n° ${this.streak+1} · ${this.trainer} !`);
   this.write('Catégories physique/spéciale définies pour chaque attaque (split Gen IV).');
+  if(!config.deferEntryEffects)this.entryEffects([...this.opponent.active,...this.player.active].map(id=>this.get(id)).filter(Boolean));
+ }
+
+
+ /** Starts a Battle Dome match after two entrants per side have been selected.
+  * Defers all switch-in effects until the actual registered combatants are known.
+  * Ordinary Tower and Factory startup remains unchanged. */
+ startDomeBattle(playerIndices,opponentIndices,format='single'){
+  if(this.turn!==0||this.status!=='active'||this.domeBattleStarted)throw Error('Ce combat du Dôme a déjà commencé.');
+  if(!['single','double'].includes(format))throw Error('Format du Dôme invalide.');
+  const valid=(indices,party)=>Array.isArray(indices)&&indices.length===2&&
+   new Set(indices).size===2&&indices.every(i=>Number.isInteger(i)&&i>=0&&i<party.length);
+  if(!valid(playerIndices,this.player.party)||!valid(opponentIndices,this.opponent.party))throw Error('Sélectionne deux Pokémon différents par camp.');
+  this.player.party=playerIndices.map(i=>this.player.party[i]);
+  this.opponent.party=opponentIndices.map(i=>this.opponent.party[i]);
+  this.mode=format;
+  for(const side of ['player','opponent']){
+   const party=this[side].party;
+   party.forEach((p,i)=>p.active=format==='double'||i===0);
+   this[side].active=party.filter(p=>p.active).map(p=>p.id);
+  }
+  this.sets=playerIndices.map(i=>this.sets[i]);
+  this.originalConfig.team=this.sets;
+  this.originalConfig.mode=format;
+  this.domeBattleStarted=true;
+  this.write('Dôme de Combat : les deux Pokémon sélectionnés entrent en lice.');
   this.entryEffects([...this.opponent.active,...this.player.active].map(id=>this.get(id)).filter(Boolean));
  }
 
