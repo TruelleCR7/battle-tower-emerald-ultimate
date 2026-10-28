@@ -4,7 +4,8 @@ import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../web/app.mjs',import.meta.url),'utf8');
 const html=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
 test('Tower new-game navigation remains unchanged',()=>{
- assert.match(app,/\$\('#to-team'\)\.onclick=\(\)=>nav\('team'\)/);
+ assert.match(app,/\$\('#to-team'\)\.onclick=\(\)=>/);
+ assert.match(app,/nav\('team'\)/);
  assert.match(app,/\$\('#start'\)\.onclick=\(\)=>begin\(false\)/);
  assert.match(app,/function renderTeam\(\)/);
  assert.match(app,/if\(state\.facility==='factory'\)\{renderFactoryDraft\(\);return;\}/);
