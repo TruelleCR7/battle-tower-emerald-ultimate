@@ -51,3 +51,15 @@ test('Battle laboratory has its own page and no access to profile save stores',(
  assert.match(app,/playLabTurn\(battle,selected\)/);
  assert.doesNotMatch(app,/RunStore|localStorage|indexedDB|saveBattleSession/);
 });
+
+test('The laboratory UI modules parse as JavaScript before deployment',async()=>{
+ const {execFileSync}=await import('node:child_process');
+ for(const file of ['lab.mjs','lab-engine.mjs'])assert.doesNotThrow(()=>execFileSync(process.execPath,['--check',new URL('../web/'+file,import.meta.url).pathname],{stdio:'pipe'}),file);
+});
+test('Unknown target IDs and impossible opponent switches are rejected before advancing the turn',()=>{
+ const e=lab(),p=e.active('player')[0],o=e.active('opponent')[0];
+ assert.throws(()=>playLabTurn(e,{[p.id]:{actor:p.id,type:'move',move:'BOOST'},[o.id]:{actor:o.id,type:'move',move:'HIT',target:'absent'}}),/Cible inconnue/);
+ assert.equal(e.turn,0);
+ assert.throws(()=>playLabTurn(e,{[p.id]:{actor:p.id,type:'move',move:'BOOST'},[o.id]:{actor:o.id,type:'switch',to:'absent'}}),/Remplaçant invalide/);
+ assert.equal(e.turn,0);
+});
