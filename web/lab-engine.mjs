@@ -39,7 +39,7 @@ export function playLabTurn(battle,selected){
   if(!a||a.actor!==id||!['move','switch'].includes(a.type))throw Error('Action manuelle invalide pour '+m.name);
   if(a.type==='move'){
    if(!m.moves.includes(a.move)&&a.move!=='STRUGGLE')throw Error('Capacité invalide pour '+m.name);
-   if(a.move!=='STRUGGLE'&&(m.pp[a.move]||0)<=0)throw Error('Plus de PP : '+a.move);
+   if(!m.charging&&a.move!=='STRUGGLE'&&(m.pp[a.move]||0)<=0)throw Error('Plus de PP : '+a.move);
    if(a.target&&!battle.get(a.target))throw Error('Cible inconnue.');
   }else if(!battle.bench(side,m.owner).some(p=>p.id===a.to))throw Error('Remplaçant invalide pour '+m.name);
  }
