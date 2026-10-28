@@ -55,3 +55,12 @@ test('Cloud Nine still suppresses damage effects of weather without erasing its 
  const physical=e.damagePreview(o,p,e.data.moveData.EARTHQUAKE).damage;
  assert.ok(physical>0);
 });
+
+test('Flash Fire blocks Fire-type status attacks including Will-O-Wisp',()=>{
+ const {e,p,o}=scenario('FLASH_FIRE');
+ const willo={name:'Feu Follet',type:'FIRE',category:'status',effect:'burn',originalEffect:'WILL_O_WISP',accuracy:85,target:'enemy'};
+ e.targetStatus(p,o,willo);
+ assert.equal(o.status,'');
+ assert.equal(o.flashFire,true);
+ assert.ok(e.log.some(x=>x.text.includes('Torche')));
+});
