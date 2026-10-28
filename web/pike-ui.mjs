@@ -6,6 +6,26 @@ const KEY='battle-tower-emerald-reptile-v1';
 let D,save=null,battle=null;
 const labels={trainer:'Combat Solo',double:'Combat Duo',hard_trainer:'Combat difficile + soins',wild:'Rencontre sauvage',status:'Piège de statut',quiet:'Salle paisible',full_heal:'Soins complets',partial_heal:'Soins partiels',brain:'Reine Venin Charline'};
 const nameOf=id=>D.speciesNames?.[id]||id;
+const sprite=(p,back=false)=>{
+ const code=encodeURIComponent(D.species?.[p.species]?.sprite||p.species.toLowerCase().replaceAll('_',''));
+ const folder=back?'gen5ani-back':'gen5ani';
+ return '<img class="pike-sprite" src="https://play.pokemonshowdown.com/sprites/'+folder+'/'+code+'.gif" data-code="'+code+'" data-facing="'+(back?'back':'front')+'" alt="'+esc(p.name)+'" loading="eager">';
+};
+function spriteFallback(root){
+ root.querySelectorAll('.pike-sprite').forEach(img=>{
+  img.onerror=()=>{
+   if(img.dataset.fallback==='png'){img.style.visibility='hidden';return;}
+   img.dataset.fallback='png';
+   img.src='https://play.pokemonshowdown.com/sprites/'+(img.dataset.facing==='back'?'gen5-back':'gen5')+'/'+img.dataset.code+'.png';
+  };
+ });
+}
+const hpBar=p=>'<div class="pike-health-track"><span style="width:'+Math.max(0,Math.min(100,p.hp/p.maxHp*100))+'%;background:'+(p.hp/p.maxHp<.25?'#d85c50':p.hp/p.maxHp<.5?'#e6b65c':'#67ba79')+'"></span></div>';
+function combatant(p,back){
+ return '<div class="pike-battler '+(back?'pike-ally':'pike-foe')+'" data-battler="'+esc(p.id)+'"><div class="pike-battler-sprite">'+sprite(p,back)+'</div><div class="pike-battler-details"><strong>'+esc(p.name)+' <small>N.'+p.level+'</small></strong>'+hpBar(p)+'<small>'+p.hp+'/'+p.maxHp+' PV · '+esc(p.status||'OK')+'</small>'+
+ (Object.entries(p.stages||{}).filter(([,n])=>n).map(([stat,n])=>'<span class="pike-stage-tag">'+esc(stat.toUpperCase())+' '+(n>0?'+':'')+n+'</span>').join(''))+'</div></div>';
+}
+const eventIcon={full_heal:'✚',partial_heal:'✚',status:'☠',quiet:'✦',trainer:'⚔',double:'⚔',hard_trainer:'⚔',wild:'◆',brain:'♛'};
 const setFor=species=>{
  const existing=D.sets?.[species];
  if(existing)return structuredClone(existing);
@@ -80,13 +100,13 @@ function playerCard(p){
 function roomView(){
  const pike=save.pike,stage=$('#pike-stage');
  if(pike.phase==='doors'){
-  stage.innerHTML='<h3>LES TROIS PORTES</h3><p class="pike-hint">🔮 '+esc(pike.choices.hint)+' · Porte '+(pike.choices.hintDoor===null?'?':pike.choices.hintDoor+1)+'</p><div class="pike-doors">'+pike.choices.doors.map((door,i)=>'<button class="pike-door" data-door="'+i+'"><span>🚪</span><b>PORTE '+(i+1)+'</b><small>Choisir ce chemin</small></button>').join('')+'</div><p>Le contenu des autres portes reste inconnu. Une porte peut aider ton équipe ou la mettre en danger.</p>';
+  stage.innerHTML='<div class="pike-scene"><div class="pike-scene-banner"><span>◈ LABYRINTHE · '+pike.pass+' / '+(pike.room+1)+'</span><span>REPTILE DE COMBAT</span></div><h3>CHOISIS TON CHEMIN</h3><p class="pike-hint">'+esc(pike.choices.hint)+' <b> · Porte '+(pike.choices.hintDoor===null?'?':pike.choices.hintDoor+1)+'</b></p><div class="pike-doors">'+pike.choices.doors.map((door,i)=>'<button class="pike-door" data-door="'+i+'"><img src="./pike-door.svg" alt="" class="pike-door-art"><b>PORTE '+(i+1)+'</b><small>ENTRER ▶</small></button>').join('')+'</div><p class="pike-scene-foot">Les événements sont dissimulés derrière les portes. L’indice ne concerne qu’un seul chemin.</p></div>';
   stage.querySelectorAll('[data-door]').forEach(el=>el.onclick=()=>pickDoor(+el.dataset.door));
  }else if(pike.phase==='event'){
-  stage.innerHTML='<h3>ÉVÉNEMENT · '+esc(labels[pike.roomEvent])+'</h3><p>Un événement se déclenche dans cette salle.</p><button id="pike-event" class="btn primary">DÉCOUVRIR L’ÉVÉNEMENT</button>';
+  stage.innerHTML='<div class="pike-event-scene"><div class="pike-event-glyph">'+(eventIcon[pike.roomEvent]||'✦')+'</div><h3>ÉVÉNEMENT · '+esc(labels[pike.roomEvent])+'</h3><p>Un événement se déclenche dans cette salle.</p><button id="pike-event" class="btn primary">DÉCOUVRIR L’ÉVÉNEMENT</button></div>';
   $('#pike-event').onclick=()=>{try{pikeResolveEvent(pike,save.party,Math.random,D.moveData);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
  }else if(pike.phase==='resolved'){
-  stage.innerHTML='<h3>SALLE TRAVERSÉE</h3><p>'+esc(pike.eventMessage||'Combat remporté !')+'</p><button id="pike-continue" class="btn primary">PASSER À LA SALLE SUIVANTE ▶</button>';
+  stage.innerHTML='<div class="pike-event-scene"><div class="pike-event-glyph">'+(eventIcon[pike.roomEvent]||'✦')+'</div><h3>SALLE TRAVERSÉE</h3><p>'+esc(pike.eventMessage||'Combat remporté !')+'</p><button id="pike-continue" class="btn primary">PASSER À LA SALLE SUIVANTE ▶</button></div>';
   $('#pike-continue').onclick=()=>{pikeFinishRoom(pike,save.party);persist();render();};
  }else if(pike.phase==='pass_complete'){
   stage.innerHTML='<h3>🏆 PASSAGE '+pike.pass+' TERMINÉ</h3><p>Tu as franchi les sept portes. '+(pike.silver?'Symbole Chance Argent obtenu. ':'')+(pike.gold?'Symbole Chance Or obtenu.':'')+'</p><button class="btn primary" id="pike-nextpass">PASSAGE SUIVANT ▶</button>';
