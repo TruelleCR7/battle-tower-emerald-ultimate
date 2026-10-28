@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createPike,pikeChoices,pikePickDoor,pikeResolveEvent,pikeFinishRoom,pikeNextPass,pikeBrainTier,pikeLucyTeam,PIKE_EVENTS} from '../web/pike.mjs';
+import {createPike,pikeChoices,pikePickDoor,pikeResolveEvent,pikeFinishRoom,pikeNextPass,pikeBrainTier,pikeLucyTeam,PIKE_HINTS,PIKE_EVENTS} from '../web/pike.mjs';
 const team=[{species:'A'},{species:'B'},{species:'C'}];
 const party=()=>Array.from({length:3},(_,i)=>({name:'P'+i,hp:100,maxHp:100,status:'',sleep:0,toxic:0,pp:{A:10}}));
 test('Pike starts with 3 doors and 7 decision rooms per pass',()=>{
@@ -14,7 +14,9 @@ test('Hints only refer to the marked door and other doors cannot match that hint
  for(const n of [0,.15,.35,.55,.8,.99]){
   const c=pikeChoices(1,0,()=>n);assert.ok(c.hintDoor>=0&&c.hintDoor<3);
   const marked=c.doors[c.hintDoor];assert.ok(PIKE_EVENTS.includes(marked.event));
-  assert.ok(c.doors.filter(d=>d.id!==c.hintDoor).every(d=>d.event!==marked.event || c.doors[c.hintDoor].event!==marked.event || true));
+  const hinted=PIKE_HINTS.find(pair=>pair.text===c.hint);assert.ok(hinted);
+  assert.ok(hinted.events.includes(marked.event));
+  assert.ok(c.doors.filter(d=>d.id!==c.hintDoor).every(d=>!hinted.events.includes(d.event)));
  }
 });
 test('Silver and gold Pike Queen are gated at the correct boss passage',()=>{
