@@ -4,7 +4,7 @@ export const DOME_PAIRS=[[1,9],[13,5],[8,16],[12,4],[3,11],[15,7],[6,14],[10,2]]
 export const DOME_ROUNDS=['HUITIÈMES DE FINALE','QUARTS DE FINALE','DEMI-FINALES','FINALE'];
 export function domeStrength(team,data){
  const species=team.map(m=>data.species[m.species]).filter(Boolean);
- const total=species.reduce((n,s)=>n+Object.values(s.baseStats||s.base||{}).reduce((a,b)=>a+(Number(b)||0),0),0);
+ const total=species.reduce((n,s)=>n+Object.values(s.baseStats||s.base||s.stats||{}).reduce((a,b)=>a+(Number(b)||0),0),0);
  const types=new Set(species.flatMap(s=>s.types||[]));
  const highest=Math.max(50,...team.map(m=>m.level||50));
  return total+types.size*highest/20;
