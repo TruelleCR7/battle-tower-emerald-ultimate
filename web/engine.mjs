@@ -2,7 +2,7 @@
  * Aucune ROM ni appel serveur n'intervient dans le calcul. Ce n'est pas un port intégral de battle_ai_main.c.
  */
 import {chooseTrainer,trainerTeam} from './frontier.mjs';
-import {effectiveStat,accuracyChance,baseDamage,STAT_KEYS,STAT_NAMES} from './battle-stats.mjs';
+import {effectiveStat,accuracyChance,baseDamage,weatherActive,STAT_KEYS,STAT_NAMES} from './battle-stats.mjs';
 import {chooseEmeraldMove} from './ai_emerald_scripted.mjs';
 export const TYPE_CHART = {
  NORMAL:{ROCK:.5,GHOST:0,STEEL:.5}, FIRE:{FIRE:.5,WATER:.5,GRASS:2,ICE:2,BUG:2,ROCK:.5,DRAGON:.5,STEEL:2},
@@ -268,7 +268,7 @@ export class TowerEngine {
   if(m.status)return false;
   const ty=this.data.species[m.species].types;
   if((status==='burn'&&ty.includes('FIRE'))||(['poison','toxic'].includes(status)&&(ty.includes('POISON')||ty.includes('STEEL')))||
-    (status==='paralyze'&&m.ability==='LIMBER')||(status==='sleep'&&m.ability==='INSOMNIA')||(status==='freeze'&&ty.includes('ICE')))return false;
+    (status==='paralyze'&&m.ability==='LIMBER')||(status==='sleep'&&['INSOMNIA','VITAL_SPIRIT'].includes(m.ability))||(status==='burn'&&m.ability==='WATER_VEIL')||(['poison','toxic'].includes(status)&&m.ability==='IMMUNITY')||(status==='freeze'&&(ty.includes('ICE')||m.ability==='MAGMA_ARMOR')))return false;
   m.status=status;if(status==='sleep')m.sleep=2+randInt(this.rng,3);if(status==='toxic')m.toxic=0;
   this.write(`${m.name} subit ${statusTranslation[status]} !`);
   this.useBerry(m);return true;
@@ -398,11 +398,11 @@ export class TowerEngine {
    if(m.status==='burn'||m.status==='poison')this.hpLoss(m,m.maxHp/8,m.status);
    if(m.status==='toxic'){m.toxic++;this.hpLoss(m,m.maxHp*m.toxic/16,'toxic');}
    if(m.seeded){const enemySide=this.sideOf(m)==='player'?'opponent':'player',caster=this.active(enemySide)[0];let val=this.hpLoss(m,m.maxHp/8,'Vampigraine');if(caster&&caster.hp>0)this.heal(caster,val);}
-   if(this.weather==='sand'&&!this.data.species[m.species].types.some(t=>['ROCK','GROUND','STEEL'].includes(t)))this.hpLoss(m,m.maxHp/16,'tempête de sable');
-   if(this.weather==='hail'&&!this.data.species[m.species].types.includes('ICE'))this.hpLoss(m,m.maxHp/16,'grêle');
+   if(weatherActive(this)&&this.weather==='sand'&&!this.data.species[m.species].types.some(t=>['ROCK','GROUND','STEEL'].includes(t)))this.hpLoss(m,m.maxHp/16,'tempête de sable');
+   if(weatherActive(this)&&this.weather==='hail'&&!this.data.species[m.species].types.includes('ICE'))this.hpLoss(m,m.maxHp/16,'grêle');
    if(m.cursed&&m.hp>0)this.hpLoss(m,Math.max(1,Math.floor(m.maxHp/4)),'Malédiction');
    if(m.item==='LEFTOVERS'&&m.hp>0)this.heal(m,m.maxHp/16);
-   if(m.ability==='RAIN_DISH'&&this.weather==='rain'&&m.hp>0)this.heal(m,m.maxHp/16);
+   if(m.ability==='RAIN_DISH'&&weatherActive(this)&&this.weather==='rain'&&m.hp>0)this.heal(m,m.maxHp/16);
    m.guarded=false;m.flinched=false;m.destiny=false;
   }
   if(this.weatherTurns>0){this.weatherTurns--;if(this.weatherTurns===0){this.weather='';this.write('Le temps revient à la normale.');}}
