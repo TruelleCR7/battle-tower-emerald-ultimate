@@ -1,6 +1,44 @@
 // Battle Dome tournament model. Bracket order follows pokeemerald seed pairings.
 // CPU-versus-CPU results currently use a seeded weighted approximation; not the ROM battle resolver.
 export const DOME_PAIRS=[[1,9],[13,5],[8,16],[12,4],[3,11],[15,7],[6,14],[10,2]];
+export const DOME_BRAIN_ID='dome-brain-tucker';
+export function domeBrainTier(number,mode='single'){
+ return mode==='single'&&Number.isInteger(number)&&number>=5&&number%5===0?(number===5?'silver':'gold'):null;
+}
+export function domeTuckerTeam(tier,data,level=50){
+ if(!['silver','gold'].includes(tier))throw Error('Équipe de Takim inconnue.');
+ const raw=tier==='silver'?[
+  ['SWAMPERT','BRAVE','FOCUS_BAND',['SURF','EARTHQUAKE','ICE_BEAM','COUNTER'],[152,152,106,0,100,0]],
+  ['SALAMENCE','ADAMANT','LUM_BERRY',['EARTHQUAKE','BRICK_BREAK','DRAGON_CLAW','AERIAL_ACE'],[152,152,106,100,0,0]],
+  ['CHARIZARD','QUIET','WHITE_HERB',['OVERHEAT','ROCK_SLIDE','AERIAL_ACE','EARTHQUAKE'],[100,152,106,152,0,0]]
+ ]:[
+  ['SWAMPERT','BRAVE','LEFTOVERS',['SURF','EARTHQUAKE','ICE_BEAM','MIRROR_COAT'],[252,252,6,0,0,0]],
+  ['METAGROSS','BRAVE','QUICK_CLAW',['PSYCHIC','METEOR_MASH','EARTHQUAKE','PROTECT'],[252,252,6,0,0,0]],
+  ['LATIAS','MODEST','CHESTO_BERRY',['THUNDERBOLT','PSYCHIC','CALM_MIND','REST'],[252,0,252,6,0,0]]
+ ];
+ return raw.map(([species,nature,item,moves,evs])=>{
+  if(!data.species?.[species])throw Error('Espèce officielle manquante : '+species);
+  const missing=moves.filter(move=>!data.moveData?.[move]);
+  if(missing.length)throw Error('Capacités officielles manquantes : '+missing.join(', '));
+  return {species,nature,item,moves,evs,ivs:Array(6).fill(tier==='silver'?20:31),
+   ability:data.species[species].abilities[0],level,role:'Takim · '+(tier==='silver'?'Argent':'Or')};
+ });
+}
+export function placeDomeBrainInFinal(dome,tier){
+ if(!tier)return dome;
+ const brain=dome.participants.find(p=>p.id===DOME_BRAIN_ID);
+ const player=dome.participants.find(p=>p.id==='player');
+ if(!brain||!player)throw Error('Participants spéciaux introuvables.');
+ const isLeft=seed=>DOME_PAIRS.slice(0,4).some(pair=>pair.includes(seed));
+ const desiredSeed=isLeft(player.seed)?2:1;
+ const displaced=dome.participants.find(p=>p.seed===desiredSeed);
+ if(!displaced)throw Error('Tête de série introuvable.');
+ displaced.seed=brain.seed;brain.seed=desiredSeed;
+ const bySeed=new Map(dome.participants.map(p=>[p.seed,p.id]));
+ dome.rounds=[DOME_PAIRS.map(pair=>pair.map(seed=>bySeed.get(seed)))];
+ dome.brainTier=tier;dome.brainTrainerId=DOME_BRAIN_ID;
+ return dome;
+}
 export const DOME_ROUNDS=['HUITIÈMES DE FINALE','QUARTS DE FINALE','DEMI-FINALES','FINALE'];
 export function domeStrength(team,data){
  const species=team.map(m=>data.species[m.species]).filter(Boolean);
@@ -30,6 +68,7 @@ export function domeResolveRound(dome,playerWon,random=Math.random){
  const byId=new Map(dome.participants.map(p=>[p.id,p]));
  const winners=pairs.map(([a,b])=>{
   if(a==='player'||b==='player')return playerWon?'player':(a==='player'?b:a);
+  if(dome.brainTrainerId&&(a===dome.brainTrainerId||b===dome.brainTrainerId))return dome.brainTrainerId;
   const sa=byId.get(a).strength,sb=byId.get(b).strength;
   return random()<(sa/(sa+sb))?a:b;
  });
