@@ -98,7 +98,7 @@ async function begin(continuing=false){
   const nextEngine=new TowerEngine(D,{mode:state.mode,levelMode:state.levelMode,team:deepCopy(team),streak:run?run.victories:0,trainerHistory:run?.trainerHistory||[]});
   if(run){run.pastBattles.push({number:run.engine.streak+1,trainer:run.engine.trainer,log:run.engine.log});engine=nextEngine;actions={};}
   else{engine=nextEngine;const created=createRun(state,engine);if(isFactory){created.facility='factory';created.name='Usine · '+new Date().toISOString().slice(0,10);created.factory=beginFactoryDraft(factoryPool,factorySelection);created.team=deepCopy(created.factory.team);}if(isDome){created.facility='dome';created.name='Dôme · '+new Date().toISOString().slice(0,10);created.dome=createDomeEntrants(created.team,state.levelMode);}activeRun=created.id;state.runs.push(created);actions={};}
-  if(isDome){const current=state.runs.find(x=>x.id===activeRun);if(current.dome?.participants)applyDomeOpponent(engine,current.dome);current.dome.phase='preview';}
+  if(isDome){const current=state.runs.find(x=>x.id===activeRun);if(current.dome?.participants)applyDomeOpponent(engine,current.dome);current.dome.phase='preview';current.dome.resolvedBattle=false;}
   switchPrompt=null;await saveBattleSession();nav('battle');
  }catch(e){notify(e.message);}
 }
@@ -128,7 +128,9 @@ function renderReplacement(){
  };}return true;
 }
 function renderDomeScreen(run,snap){
- const dome=run.dome,round=Math.min(3,dome.round||0),finished=dome.champion==='player';
+ const dome=run.dome;
+ if(snap.status!=='active'&&!dome.resolvedBattle){domeResolveRound(dome,snap.status==='won');dome.resolvedBattle=true;store();}
+ const round=Math.min(3,dome.round||0),finished=dome.champion==='player';
  const opponent=domeNextOpponent(dome);
  const names=new Map((dome.participants||[]).map(p=>[p.id,p.player?'VOUS':p.name]));
  const bracket=(dome.rounds||[]).map((pairs,r)=>'<section class="dome-tree-round"><h4>'+DOME_ROUNDS[r]+'</h4>'+pairs.map(([a,b],i)=>{const winner=dome.results?.[r]?.[i]?.winner;return '<div class="dome-tree-pair"><span class="'+(winner===a?'dome-qualified':'')+'">'+escapeHTML(names.get(a)||'—')+'</span><span class="'+(winner===b?'dome-qualified':'')+'">'+escapeHTML(names.get(b)||'—')+'</span></div>';}).join('')+'</section>').join('');
@@ -159,11 +161,9 @@ function renderDomeScreen(run,snap){
   dome.phase='battle';await saveBattleSession();renderBattle();
  };
  if($('#dome-next'))$('#dome-next').onclick=async()=>{
-  domeResolveRound(dome,true);
-  await store();await begin(true);
+  await begin(true);
  };
  if($('#dome-finish'))$('#dome-finish').onclick=async()=>{
-  if(!dome.champion)domeResolveRound(dome,snap.status==='won');
   await store();nav('mode');
  };
 }
