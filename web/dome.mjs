@@ -49,7 +49,7 @@ export function domeStrength(team,data){
 }
 export function createDomeTournament(playerTeam,participants,data,random=Math.random){
  if(participants.length!==15)throw Error('Le Dôme exige quinze adversaires.');
- const roster=[{id:'player',name:'VOUS',team:playerTeam,player:true},...participants.map((p,i)=>({...p,id:'cpu-'+i,player:false}))];
+ const roster=[{id:'player',name:'VOUS',team:playerTeam,player:true},...participants.map((p,i)=>({...p,id:p.id||'cpu-'+i,player:false}))];
  roster.forEach(p=>p.strength=domeStrength(p.team,data));
  roster.sort((a,b)=>b.strength-a.strength||(a.player?-1:b.player?1:0));
  roster.forEach((p,i)=>p.seed=i+1);
