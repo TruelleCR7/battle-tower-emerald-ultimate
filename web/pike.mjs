@@ -49,16 +49,16 @@ export function pikeStatusEffect(party,random=Math.random){
  }
  return messages.length?'Une attaque surprise ! '+messages.join(' · '):'Aucun Pokémon valide ne peut être affecté.';
 }
-export function pikeResolveEvent(pike,party,random=Math.random){
+export function pikeResolveEvent(pike,party,random=Math.random,moveData=null){
  if(pike.phase!=='event')throw Error('Cette salle nécessite un combat.');
  const event=pike.roomEvent;let message='';
  if(event==='full_heal'){
-  party.forEach(p=>{p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;p.pp=Object.fromEntries(Object.entries(p.pp).map(([k,v])=>[k,Math.max(v,p.maxPp?.[k]??v)]));});
+  party.forEach(p=>{p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;if(moveData)p.pp=Object.fromEntries(Object.entries(p.pp).map(([k,v])=>[k,moveData[k]?.pp??v]));});
   message='Une infirmière soigne entièrement votre équipe !';
  }else if(event==='partial_heal'){
   const targets=party.filter(p=>p.hp>0&&(p.hp<p.maxHp||p.status));
   const count=Math.min(targets.length,1+int(random,2));
-  for(let i=0;i<count;i++){let p=targets.splice(int(random,targets.length),1)[0];p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;}
+  for(let i=0;i<count;i++){let p=targets.splice(int(random,targets.length),1)[0];p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;if(moveData)p.pp=Object.fromEntries(Object.entries(p.pp).map(([k,v])=>[k,moveData[k]?.pp??v]));}
   message=count?'Un bienfaiteur soigne '+count+' Pokémon.':'Personne ne nécessite de soins.';
  }else if(event==='status')message=pikeStatusEffect(party,random);
  else if(event==='quiet')message='La salle est paisible. Vous traversez sans rencontrer de danger.';
