@@ -3,10 +3,10 @@ import {BattlePresenter,preferences} from './battle-presentation.mjs';
 import {RunStore,migrateState,createRun,captureRun,contextKey} from './runs.mjs';
 import {TYPES,typeName,percent,targetPlan,groupedLog,statChanges} from './battle-ui.mjs';
 import {officialSet,trainerTeam} from './frontier.mjs';
-import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,DOME_ROUNDS} from './dome.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,DOME_ROUNDS} from './dome.mjs';
 import {rentalPool,beginFactoryDraft,proposeFactoryExchange,resolveFactoryExchange} from './factory.mjs';
 import {exportSave,validateImport,restoreEngine} from './storage.mjs';
-import {TowerEngine,validateTeam,statsFor,makeMon} from './engine.mjs';
+import {TowerEngine,validateTeam,statsFor,makeMon,TYPE_CHART} from './engine.mjs';
 const $=sel=>document.querySelector(sel), $$=sel=>[...document.querySelectorAll(sel)];
 const STORE='battle-tower-emerald-v05';const LEGACY_STORE='battle-tower-simple-v03';const deepCopy=o=>JSON.parse(JSON.stringify(o));
 const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -155,7 +155,7 @@ function renderDomeScreen(run,snap){
   engine.player.active=[selected[0].id];selected.forEach((p,i)=>p.active=i===0);
   engine.sets=domeSelectTwo(run.team,indices);
   engine.originalConfig.team=engine.sets;
-  const cpuIndices=[0,1]; // Opponent chooses two from the registered trio; detailed ROM scoring remains to port.
+  const cpuIndices=domeCpuSelection(domeNextOpponent(dome).team,run.team,D,TYPE_CHART);
   engine.opponent.party=cpuIndices.map(i=>engine.opponent.party[i]);
   engine.opponent.active=[engine.opponent.party[0].id];engine.opponent.party.forEach((p,i)=>p.active=i===0);
   dome.phase='battle';await saveBattleSession();renderBattle();
