@@ -120,3 +120,8 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 /* Battle Dome Frontier Brain and Tactics Symbol presentation */
 .dome-brain-notice{margin:12px 0;padding:12px 14px;border:2px solid #a88538;background:#f9efd1;color:#654712;font-weight:900;letter-spacing:.025em}
 .dome-symbol-earned{margin:12px 0;padding:14px;border:3px double #ad893d;background:#fbf0cf;color:#62460c;font-size:1.05rem;font-weight:900;text-align:center}
+
+/* The Battle Dome's optional saved battle replay remains separate from normal combat controls. */
+.dome-replay-dialog{width:min(720px,94vw);max-height:85vh;overflow:auto}
+.dome-replay-log{max-height:55vh;overflow:auto;padding:12px;border:2px solid #79958a;background:#e9f0e4}
+.dome-replay-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:12px}
