@@ -140,7 +140,7 @@ function combatView(){
 function render(){
  if(!save)return;
  const pike=save.pike;
- $('#pike-progress').innerHTML='<strong>PASSAGE '+pike.pass+' · PORTE '+Math.min(7,pike.room+1)+'/7</strong><small>'+pike.totalRooms+' SALLES TRAVERSÉES · '+(pike.silver?'🥈 ARGENT ':'')+(pike.gold?'🥇 OR':'')+'</small>';
+ $('#pike-progress').innerHTML='<strong>PASSAGE '+pike.pass+' · PORTE '+Math.min(7,pike.room+1)+'/7</strong><small>'+(pike.totalRooms*2)+' SALLES TRAVERSÉES · '+(pike.silver?'🥈 ARGENT ':'')+(pike.gold?'🥇 OR':'')+'</small>';
  $('#pike-party').innerHTML='<h3>TON ÉQUIPE · ENDURANCE</h3>'+(battle?.player.party||save.party).map(playerCard).join('');
  $('#pike-history').innerHTML=pike.history.slice().reverse().map(h=>'<p>Passage '+h.pass+' · salle '+h.room+' · porte '+(h.door+1)+' · '+esc(labels[h.event]||h.event)+'</p>').join('');
  if(pike.phase==='battle'&&battle)combatView();else roomView();
