@@ -47,3 +47,20 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 
 .game-dialog h2{color:#244e46}.arena{grid-template-rows:repeat(2,minmax(min-content,1fr))}.battle-row.double .battler{min-width:0}
 @media(max-width:600px){body[data-screen=battle] .arena{grid-template-rows:auto auto;gap:12px}body[data-screen=battle] .battle-row.double .battler{min-height:0}.battle-row.double{align-items:flex-start}.battle-row.double .combat-mon{flex-shrink:0}}
+
+/* Factory rental summaries: independent selection and inspection controls. */
+.factory-detail{font-size:10px;min-height:40px;margin:4px 8px 10px 0;white-space:nowrap}
+.factory-summary-dialog{width:min(94vw,620px)}
+.factory-summary-head{display:flex;align-items:center;gap:16px;margin:12px 0 18px}
+.factory-summary-head .pokemon-img{width:112px;height:112px;object-fit:contain;flex-shrink:0}
+.factory-summary-head h3{margin:0 0 8px}
+.factory-summary-head p{margin:4px 0}
+.factory-summary-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0 18px}
+.factory-summary-stats>div{display:flex;flex-direction:column;gap:3px;padding:9px;background:#dce9d5;border:1px solid #a2b6a3}
+.factory-summary-stats span{font-size:10px;font-weight:700}
+.factory-summary-stats b{font-size:20px}
+.factory-summary-stats small{font-size:10px}
+.factory-summary-moves{padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.factory-summary-moves li{display:flex;flex-direction:column;padding:10px;background:#dce9d5;border:1px solid #a2b6a3}
+.factory-summary-moves small{margin-top:4px;font-size:10px}
+@media(max-width:480px){.factory-summary-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.factory-summary-head .pokemon-img{width:80px;height:80px}.factory-summary-moves{grid-template-columns:1fr}}
