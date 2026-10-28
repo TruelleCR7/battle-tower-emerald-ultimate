@@ -115,3 +115,22 @@ test('Paralysis prevents selected moves without consuming a PP',()=>{
  assert.equal(c.player.stages.atk,0);
  assert.ok(c.e.log.some(x=>x.text.includes('totalement paralysé')));
 });
+
+test('Synchronize reflects paralysis received from a targeted status move during a full turn',()=>{
+ const c=setup('GROWL');
+ c.e.data.moveData.THUNDER_WAVE={name:'Cage-Éclair',originalEffect:'PARALYZE',effect:'paralyze',target:'enemy',category:'status',type:'ELECTRIC',accuracy:100,pp:20,priority:0};
+ c.player.moves=['THUNDER_WAVE'];c.player.pp={THUNDER_WAVE:20};
+ c.enemy.ability='SYNCHRONIZE';
+ play(c,'THUNDER_WAVE');
+ assert.equal(c.enemy.status,'paralyze');
+ assert.equal(c.player.status,'paralyze');
+ assert.equal(c.e.log.filter(x=>x.text.includes('Synchro')).length,1);
+});
+test('Synchronize on the defender reflects an attack secondary status proc',()=>{
+ const c=setup('CRUNCH',{rng:()=>0});
+ c.e.data.moveData.CRUNCH={...c.e.data.moveData.CRUNCH,originalEffect:'PARALYZE_HIT',secondaryChance:100};
+ c.enemy.ability='SYNCHRONIZE';
+ play(c,'CRUNCH');
+ assert.equal(c.enemy.status,'paralyze');
+ assert.equal(c.player.status,'paralyze');
+});
