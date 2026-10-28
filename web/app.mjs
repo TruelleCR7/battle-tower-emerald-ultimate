@@ -126,7 +126,6 @@ function renderDomeScreen(run,snap){
    engine.player.active[activeIndex]=chosen.id;
    [party[0],party[lead]]=[party[lead],party[0]];
    [engine.sets[0],engine.sets[lead]]=[engine.sets[lead],engine.sets[0]];
-   [engine.originalConfig.team[0],engine.originalConfig.team[lead]]=[engine.originalConfig.team[lead],engine.originalConfig.team[0]];
   }
   run.dome.leadIndex=0;run.dome.phase='battle';await saveBattleSession();renderBattle();
  };
