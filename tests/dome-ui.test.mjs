@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,DOME_PAIRS} from '../web/dome.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,DOME_PAIRS} from '../web/dome.mjs';
 const app=readFileSync(new URL('../web/app.mjs',import.meta.url),'utf8');
 const html=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
 test('Dome is selectable and tournament screens are wired',()=>{
@@ -38,4 +38,11 @@ test('Dome selection allows only two distinct Pokémon',()=>{
  assert.deepEqual(domeSelectTwo(['a','b','c'],[2,0]),['c','a']);
  assert.throws(()=>domeSelectTwo(['a','b','c'],[0,0]));
  assert.throws(()=>domeSelectTwo(['a','b','c'],[0,1,2]));
+});
+
+test('Dome CPU picks two distinct registered Pokémon',()=>{
+ const data={species:{A:{types:['NORMAL']},B:{types:['WATER']},C:{types:['FIRE']},D:{types:['GRASS']}},moveData:{HIT:{power:60,type:'NORMAL'}}};
+ const party=['A','B','C'].map(species=>({species,moves:['HIT']}));
+ const result=domeCpuSelection(party,[{species:'D',moves:['HIT']}],data,{NORMAL:{}},()=>0.1);
+ assert.equal(result.length,2);assert.notEqual(result[0],result[1]);
 });
