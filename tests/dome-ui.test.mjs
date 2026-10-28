@@ -56,5 +56,5 @@ test('Dome reception, profile and both battle formats are available',()=>{
 test('New challenge button navigates to teambuilder and surfaces errors',()=>{
  assert.match(app,/#to-team'\)\.onclick=\(\)=>/);
  assert.match(app,/nav\('team'\)/);
- assert.match(app,/Impossible d’ouvrir le nouveau défi/);
+ assert.match(app,/Erreur de préparation de l’équipe/);
 });
