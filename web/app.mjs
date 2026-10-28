@@ -3,7 +3,7 @@ import {BattlePresenter,preferences} from './battle-presentation.mjs';
 import {RunStore,migrateState,createRun,captureRun,contextKey} from './runs.mjs';
 import {TYPES,typeName,percent,targetPlan,groupedLog,statChanges} from './battle-ui.mjs';
 import {officialSet,trainerTeam} from './frontier.mjs';
-import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,domeProfile,DOME_ROUNDS} from './dome.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,domeProfile,startNextDomeTournament,DOME_ROUNDS} from './dome.mjs';
 import {rentalPool,beginFactoryDraft,proposeFactoryExchange,resolveFactoryExchange} from './factory.mjs';
 import {exportSave,validateImport,restoreEngine} from './storage.mjs';
 import {TowerEngine,validateTeam,statsFor,makeMon,TYPE_CHART} from './engine.mjs';
@@ -71,7 +71,7 @@ function renderEdit(){const p=editing;$('#species-search').value='';$('#species-
 }
 function saveEdit(){let p=deepCopy(editing);p.ability=$('[data-field=ability]').value;p.item=$('[data-field=item]').value;p.nature=$('[data-field=nature]').value;p.level=Number($('[data-field=level]').value);p.moves=[0,1,2,3].map(i=>$(`[data-field=move${i}]`).value);p.evs=$$('#edit-advanced [data-ev]').map(e=>Number(e.value));p.ivs=$$('#edit-advanced [data-iv]').map(e=>Number(e.value));if(new Set(p.moves).size!==p.moves.length){$('#edit-error').textContent='Chaque capacité doit être différente.';return;}if(p.evs.some(x=>!Number.isInteger(x)||x<0||x>255)||p.evs.reduce((a,b)=>a+b,0)>510){$('#edit-error').textContent='EV : 0 à 255/stat et 510 maximum au total.';return;}if(p.ivs.some(x=>!Number.isInteger(x)||x<0||x>31)){$('#edit-error').textContent='IV : 0 à 31.';return;}const candidate=[...state.team];candidate[editorSlot]=p;const errs=validateTeam(candidate,state.mode,state.levelMode,D).filter(x=>!x.includes('Ce mode nécessite'));if(errs.length){$('#edit-error').textContent=errs.join(' · ');return;}state.team[editorSlot]=p;store();$('#edit-layer').classList.add('hidden');renderTeam();}
 function partner(){if(state.mode!=='link')return undefined;return (state.partner||[]).map(setFor)}
-function createDomeEntrants(team,levelMode){
+function createDomeEntrants(team,levelMode,previous=null){
  const used=new Set(),result=[];
  for(let i=0;i<15;i++){
   let trainer;for(let attempts=0;attempts<200;attempts++){const candidate=D.trainers[Math.floor(Math.random()*D.trainers.length)];if(candidate&&!used.has(candidate.id)){trainer=candidate;break;}}
@@ -79,7 +79,7 @@ function createDomeEntrants(team,levelMode){
   used.add(trainer.id);
   result.push({name:trainer.name+' · '+trainer.class.replaceAll('_',' '),trainerId:trainer.id,team:trainerTeam(D,trainer,3,levelMode,Math.random)});
  }
- return createDomeTournament(team,result,D);
+ return previous?startNextDomeTournament(previous,team,result,D):createDomeTournament(team,result,D);
 }
 function applyDomeOpponent(battle,dome){
  const opponent=domeNextOpponent(dome);if(!opponent)throw Error('Adversaire du Dôme introuvable.');
@@ -142,8 +142,8 @@ function renderDomeScreen(run,snap){
  const chosen=Array.isArray(dome.chosen)?dome.chosen:[0,1];
  const options=preview&&dome.menu==='select'?'<div class="dome-lead-picker"><h3>CHOISIS TES DEUX POKÉMON</h3><p>Émeraude : inscris trois Pokémon au tournoi, mais sélectionne uniquement deux combattants par match. Le premier sera ton Lead.</p><div class="dome-lead-options">'+run.team.map((p,i)=>{const pos=chosen.indexOf(i);return '<button class="dome-lead-option '+(pos>=0?'chosen':'')+'" data-dome-pick="'+i+'" aria-pressed="'+(pos>=0)+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b><small>'+(pos===0?'★ LEAD':pos===1?'2e POKÉMON':'EN RÉSERVE')+'</small></button>';}).join('')+'</div></div>':'';
  const opponents=opponent?.team.map(p=>'<span class="dome-opponent">'+icon(p.species)+' '+escapeHTML(nameOf(p.species))+'</span>').join('')||'';
- const nextLabel=finished?'🏆 TOURNOI REMPORTÉ !':snap.status==='lost'?'ÉLIMINÉ':snap.status==='won'?'VICTOIRE · QUALIFIÉ !':'';
- const controls=preview?'<h3>'+DOME_ROUNDS[round]+'</h3><p>ADVERSAIRE : <b>'+escapeHTML(opponent?.name||snap.trainer)+'</b></p><p>ÉQUIPE INSCRITE DE L’ADVERSAIRE</p><div class="dome-opponents">'+opponents+'</div>'+(dome.menu==='select'?options+'<button class="btn primary" id="dome-fight" '+(chosen.length!==2?'disabled':'')+'>COMMENCER LE MATCH ▶</button>':''):nextLabel+'<div><button class="btn primary" id="'+(snap.status==='won'&&!finished?'dome-next':'dome-finish')+'">'+(snap.status==='won'&&!finished?'TABLEAU DU TOUR SUIVANT ▶':'MES DÉFIS')+'</button></div>';
+ const nextLabel=finished?'🏆 TOURNOI '+(dome.tournamentNumber||1)+' REMPORTÉ ! · '+(dome.tournamentsWon||0)+1+' TOURNOI(S) GAGNÉ(S)':snap.status==='lost'?'ÉLIMINÉ':snap.status==='won'?'VICTOIRE · QUALIFIÉ !':'';
+ const controls=preview?'<h3>'+DOME_ROUNDS[round]+'</h3><p>ADVERSAIRE : <b>'+escapeHTML(opponent?.name||snap.trainer)+'</b></p><p>ÉQUIPE INSCRITE DE L’ADVERSAIRE</p><div class="dome-opponents">'+opponents+'</div>'+(dome.menu==='select'?options+'<button class="btn primary" id="dome-fight" '+(chosen.length!==2?'disabled':'')+'>COMMENCER LE MATCH ▶</button>':''):nextLabel+'<div>'+(finished?'<button class="btn primary" id="dome-next-tournament">TOURNOI SUIVANT ▶</button> ':'')+'<button class="btn '+(finished?'':'primary')+'" id="'+(snap.status==='won'&&!finished?'dome-next':'dome-finish')+'">'+(snap.status==='won'&&!finished?'TABLEAU DU TOUR SUIVANT ▶':'MES DÉFIS')+'</button></div>';
  $('#battle-controls').innerHTML='<section class="terminal dome-panel"><h3>DÔME DE COMBAT · 16 PARTICIPANTS · '+(run.mode==='double'?'DUO':'SOLO')+'</h3>'+(preview?reception():'')+(dome.menu==='bracket'||!preview?'<div class="dome-tree">'+bracket+'</div>':'')+(dome.menu==='profile'&&preview?profilePanel:'')+controls+'</section>';
  if($('#dome-opponent'))$('#dome-opponent').onclick=()=>{dome.menu='profile';dome.viewProfile=opponent?.id;renderBattle();};
  if($('#dome-bracket'))$('#dome-bracket').onclick=()=>{dome.menu='bracket';renderBattle();};
@@ -174,6 +174,20 @@ function renderDomeScreen(run,snap){
  };
  if($('#dome-next'))$('#dome-next').onclick=async()=>{
   await begin(true);
+ };
+ if($('#dome-next-tournament'))$('#dome-next-tournament').onclick=async()=>{
+  const button=$('#dome-next-tournament');button.disabled=true;
+  if(dome.champion!=='player'||dome.results.length!==4||engine.status!=='won'){notify('Termine le tournoi avant de passer au suivant.');button.disabled=false;return;}
+  const previous=run.dome;
+  try{
+   await saveQueue;
+   run.dome=createDomeEntrants(run.team,run.levelMode,previous);
+   await begin(true);
+  }catch(error){
+   run.dome=previous;
+   notify('Impossible de lancer le tournoi suivant : '+error.message);
+   button.disabled=false;
+  }
  };
  if($('#dome-finish'))$('#dome-finish').onclick=async()=>{
   await store();nav('mode');
