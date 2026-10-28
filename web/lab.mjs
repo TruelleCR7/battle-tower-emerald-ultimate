@@ -10,7 +10,8 @@ const itemOptions=()=>Object.keys(D.items||{NONE:1}).sort().map(k=>'<option valu
 const natureOptions=()=>D.natures.map(k=>'<option value="'+esc(k)+'">'+esc(k)+'</option>').join('');
 function defaultSet(species){
  const k=D.species[species]?species:Object.keys(D.species)[0];
- const moves=(D.learnsets?.[k]||Object.keys(D.moveData)).filter(x=>D.moveData[x]).slice(0,4);
+ const learnt=Array.isArray(D.learnsets?.[k])?D.learnsets[k]:Object.keys(D.moveData);
+ const moves=learnt.filter(x=>D.moveData[x]).slice(0,4);
  return {species:k,level:50,nature:D.natures.includes('HARDY')?'HARDY':D.natures[0],
   ability:D.species[k].abilities[0],item:'NONE',moves:moves.length?moves:[Object.keys(D.moveData)[0]],
   evs:[0,0,0,0,0,0],ivs:[31,31,31,31,31,31]};
@@ -70,6 +71,8 @@ function applySettings(){
   const m=battle.get(el.dataset.adjust);if(!m)return;
   m.hp=Math.max(1,Math.min(m.maxHp,Number(el.querySelector('[data-hp]').value)||1));
   m.status=el.querySelector('[data-status]').value;
+  m.sleep=m.status==='sleep'?2:0;
+  m.toxic=0;
   for(const key of STAT_KEYS)m.stages[key]=Math.max(-6,Math.min(6,Number(el.querySelector('[data-stage="'+key+'"]').value)||0));
  });
  battle.write('Conditions du laboratoire modifiées manuellement.');
