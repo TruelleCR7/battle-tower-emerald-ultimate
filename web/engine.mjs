@@ -168,6 +168,7 @@ export class TowerEngine {
  damagePreview(attacker,target,move,options={}){
   if(move.category==='status')return {damage:0,mult:1};
   const eff=effectiveness(move.type,target,this.data);if(eff===0)return {damage:0,mult:0};
+  if(move.type==='GROUND'&&target.ability==='LEVITATE')return {damage:0,mult:0};
   if(target.ability==='WONDER_GUARD'&&eff<=1)return {damage:0,mult:0};
   if(move.originalEffect==='LEVEL_DAMAGE')return {damage:attacker.level,mult:eff,fixed:true};
   if(move.originalEffect==='SONICBOOM')return {damage:20,mult:eff,fixed:true};
@@ -244,6 +245,8 @@ export class TowerEngine {
   if(this.hazards[side]>0&&!this.data.species[m.species].types.includes('FLYING')&&m.ability!=='LEVITATE'){
     this.hpLoss(m,Math.floor(m.maxHp*([0,1/8,1/6,1/4][this.hazards[side]])),'Picots');}
   if(m.ability==='SAND_STREAM'){this.weather='sand';this.weatherTurns=-1;this.write('Une tempête de sable se lève !');}
+  if(m.ability==='DRIZZLE'){this.weather='rain';this.weatherTurns=-1;this.write('Crachin déclenche une pluie persistante !');}
+  if(m.ability==='DROUGHT'){this.weather='sun';this.weatherTurns=-1;this.write('Sécheresse déclenche un soleil intense !');}
   if(m.ability==='INTIMIDATE')for(const e of this.active(foe))this.modify(e,'atk',-1,m);
   if(m.ability==='TRACE'){const target=this.active(foe)[0];if(target){m.ability=target.ability;this.write(`${m.name} copie le talent ${m.ability} !`);}}
  }for(const p of [...this.active('player'),...this.active('opponent')])this.whiteHerb(p);}
@@ -339,6 +342,11 @@ export class TowerEngine {
    const crit=!['BATTLE_ARMOR','SHELL_ARMOR'].includes(t.ability)&&(Math.floor(this.rng()*65536)%((move.effect==='crit')?8:16)===0);
    const result=retaliation!==null?{damage:retaliation,mult:effectiveness(move.type,t,this.data)===0?0:1,fixed:true}:this.damagePreview(m,t,move,{critical:crit,spread:recipients.length>1});
    if(result.mult===0){this.write(`Cela n'affecte pas ${t.name} !`);continue;}
+   if(t.ability==='FLASH_FIRE'&&move.type==='FIRE'){
+     t.flashFire=true;
+     this.write(`${t.name} absorbe l'attaque Feu grâce à Torche !`);
+     continue;
+   }
    if(t.ability==='VOLT_ABSORB'&&move.type==='ELECTRIC'||t.ability==='WATER_ABSORB'&&move.type==='WATER'){
      this.write(`${t.name} absorbe l'attaque grâce à ${t.ability} !`);this.heal(t,t.maxHp/4);continue;
    }
