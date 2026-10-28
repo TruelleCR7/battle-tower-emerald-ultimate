@@ -394,6 +394,9 @@ export class TowerEngine {
   }
  }
  targetStatus(m,t,move){
+  if(move.type==='FIRE'&&t.ability==='FLASH_FIRE'){
+   t.flashFire=true;this.write(`${t.name} absorbe l'attaque Feu grâce à Torche !`);return;
+  }
   if(this.statMove(m,t,move))return;
   if(effectiveness(move.type,t,this.data)===0&&['paralyze','toxic','poison'].includes(move.effect)){this.write('Cible immunisée.');return;}
   switch(move.effect){
