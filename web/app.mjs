@@ -3,7 +3,7 @@ import {BattlePresenter,preferences} from './battle-presentation.mjs';
 import {RunStore,migrateState,createRun,captureRun,contextKey} from './runs.mjs';
 import {TYPES,typeName,percent,targetPlan,groupedLog,statChanges} from './battle-ui.mjs';
 import {officialSet,trainerTeam} from './frontier.mjs';
-import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,domeProfile,startNextDomeTournament,DOME_ROUNDS} from './dome.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,domeProfile,startNextDomeTournament,domeBrainTier,domeTuckerTeam,placeDomeBrainInFinal,DOME_BRAIN_ID,DOME_ROUNDS} from './dome.mjs';
 import {rentalPool,beginFactoryDraft,proposeFactoryExchange,resolveFactoryExchange} from './factory.mjs';
 import {exportSave,validateImport,restoreEngine} from './storage.mjs';
 import {TowerEngine,validateTeam,statsFor,makeMon,TYPE_CHART} from './engine.mjs';
@@ -72,6 +72,8 @@ function renderEdit(){const p=editing;$('#species-search').value='';$('#species-
 function saveEdit(){let p=deepCopy(editing);p.ability=$('[data-field=ability]').value;p.item=$('[data-field=item]').value;p.nature=$('[data-field=nature]').value;p.level=Number($('[data-field=level]').value);p.moves=[0,1,2,3].map(i=>$(`[data-field=move${i}]`).value);p.evs=$$('#edit-advanced [data-ev]').map(e=>Number(e.value));p.ivs=$$('#edit-advanced [data-iv]').map(e=>Number(e.value));if(new Set(p.moves).size!==p.moves.length){$('#edit-error').textContent='Chaque capacité doit être différente.';return;}if(p.evs.some(x=>!Number.isInteger(x)||x<0||x>255)||p.evs.reduce((a,b)=>a+b,0)>510){$('#edit-error').textContent='EV : 0 à 255/stat et 510 maximum au total.';return;}if(p.ivs.some(x=>!Number.isInteger(x)||x<0||x>31)){$('#edit-error').textContent='IV : 0 à 31.';return;}const candidate=[...state.team];candidate[editorSlot]=p;const errs=validateTeam(candidate,state.mode,state.levelMode,D).filter(x=>!x.includes('Ce mode nécessite'));if(errs.length){$('#edit-error').textContent=errs.join(' · ');return;}state.team[editorSlot]=p;store();$('#edit-layer').classList.add('hidden');renderTeam();}
 function partner(){if(state.mode!=='link')return undefined;return (state.partner||[]).map(setFor)}
 function createDomeEntrants(team,levelMode,previous=null){
+ const tournamentNumber=previous?(previous.tournamentNumber||1)+1:1;
+ const brainTier=domeBrainTier(tournamentNumber,state.mode);
  const used=new Set(),result=[];
  for(let i=0;i<15;i++){
   let trainer;for(let attempts=0;attempts<200;attempts++){const candidate=D.trainers[Math.floor(Math.random()*D.trainers.length)];if(candidate&&!used.has(candidate.id)){trainer=candidate;break;}}
@@ -79,12 +81,19 @@ function createDomeEntrants(team,levelMode,previous=null){
   used.add(trainer.id);
   result.push({name:trainer.name+' · '+trainer.class.replaceAll('_',' '),trainerId:trainer.id,team:trainerTeam(D,trainer,3,levelMode,Math.random)});
  }
- return previous?startNextDomeTournament(previous,team,result,D):createDomeTournament(team,result,D);
+ if(brainTier){
+  const level=levelMode==='50'?50:Math.max(60,...team.map(p=>p.level||50));
+  result[14]={id:DOME_BRAIN_ID,name:'Takim · Star du Dôme',trainerId:null,brain:true,
+   team:domeTuckerTeam(brainTier,D,level)};
+ }
+ const tournament=previous?startNextDomeTournament(previous,team,result,D):createDomeTournament(team,result,D);
+ if(brainTier)placeDomeBrainInFinal(tournament,brainTier);
+ return tournament;
 }
 function applyDomeOpponent(battle,dome){
  const opponent=domeNextOpponent(dome);if(!opponent)throw Error('Adversaire du Dôme introuvable.');
  battle.trainer=opponent.name;
- battle.trainerData=D.trainers[opponent.trainerId];
+ battle.trainerData=opponent.brain?{id:9999,name:'Takim',class:'STAR_DU_DOME'}:D.trainers[opponent.trainerId];
  battle.opponent.party=opponent.team.map(p=>makeMon(p,D,'cpu',battle.level));
  battle.opponent.active=[battle.opponent.party[0].id];
  battle.opponent.party[0].active=true;
@@ -129,7 +138,18 @@ function renderReplacement(){
 }
 function renderDomeScreen(run,snap){
  const dome=run.dome;
- if(snap.status!=='active'&&!dome.resolvedBattle){domeResolveRound(dome,snap.status==='won');dome.resolvedBattle=true;store();}
+ if(snap.status!=='active'&&!dome.resolvedBattle){
+  domeResolveRound(dome,snap.status==='won');
+  dome.resolvedBattle=true;
+  if(dome.champion==='player'&&dome.brainTier){
+   const key='dome:'+run.mode+':'+run.levelMode;
+   const record=state.records[key]||{current:0,best:0,silver:false,gold:false};
+   if(dome.brainTier==='silver')record.silver=true;
+   if(dome.brainTier==='gold')record.gold=true;
+   state.records[key]=record;dome.symbolAwarded=dome.brainTier;
+  }
+  store();
+ }
  const round=Math.min(3,dome.round||0),finished=dome.champion==='player';
  const opponent=domeNextOpponent(dome);
  const names=new Map((dome.participants||[]).map(p=>[p.id,p.player?'VOUS':p.name]));
@@ -143,8 +163,10 @@ function renderDomeScreen(run,snap){
  const options=preview&&dome.menu==='select'?'<div class="dome-lead-picker"><h3>CHOISIS TES DEUX POKÉMON</h3><p>Émeraude : inscris trois Pokémon au tournoi, mais sélectionne uniquement deux combattants par match. Le premier sera ton Lead.</p><div class="dome-lead-options">'+run.team.map((p,i)=>{const pos=chosen.indexOf(i);return '<button class="dome-lead-option '+(pos>=0?'chosen':'')+'" data-dome-pick="'+i+'" aria-pressed="'+(pos>=0)+'">'+icon(p.species)+' <b>'+escapeHTML(nameOf(p.species))+'</b><small>'+(pos===0?'★ LEAD':pos===1?'2e POKÉMON':'EN RÉSERVE')+'</small></button>';}).join('')+'</div></div>':'';
  const opponents=opponent?.team.map(p=>'<span class="dome-opponent">'+icon(p.species)+' '+escapeHTML(nameOf(p.species))+'</span>').join('')||'';
  const nextLabel=finished?'🏆 TOURNOI '+(dome.tournamentNumber||1)+' REMPORTÉ ! · ' +((dome.tournamentsWon||0)+1)+' TOURNOI(S) GAGNÉ(S)':snap.status==='lost'?'ÉLIMINÉ':snap.status==='won'?'VICTOIRE · QUALIFIÉ !':'';
+ const bossNotice=dome.brainTier?'<p class="dome-brain-notice">★ TAKIM · STAR DU DÔME · SYMBOLE '+(dome.brainTier==='silver'?'ARGENT':'OR')+' · FINALE DU TOURNOI '+(dome.tournamentNumber||1)+'</p>':'';
+ const awardNotice=finished&&dome.symbolAwarded?'<p class="dome-symbol-earned">🏆 SYMBOLE TACTIQUE '+(dome.symbolAwarded==='silver'?'ARGENT':'OR')+' OBTENU !</p>':'';
  const controls=preview?'<h3>'+DOME_ROUNDS[round]+'</h3><p>ADVERSAIRE : <b>'+escapeHTML(opponent?.name||snap.trainer)+'</b></p><p>ÉQUIPE INSCRITE DE L’ADVERSAIRE</p><div class="dome-opponents">'+opponents+'</div>'+(dome.menu==='select'?options+'<button class="btn primary" id="dome-fight" '+(chosen.length!==2?'disabled':'')+'>COMMENCER LE MATCH ▶</button>':''):nextLabel+'<div>'+(finished?'<button class="btn primary" id="dome-next-tournament">TOURNOI SUIVANT ▶</button> ':'')+'<button class="btn '+(finished?'':'primary')+'" id="'+(snap.status==='won'&&!finished?'dome-next':'dome-finish')+'">'+(snap.status==='won'&&!finished?'TABLEAU DU TOUR SUIVANT ▶':'MES DÉFIS')+'</button></div>';
- $('#battle-controls').innerHTML='<section class="terminal dome-panel"><h3>DÔME DE COMBAT · 16 PARTICIPANTS · '+(run.mode==='double'?'DUO':'SOLO')+'</h3>'+(preview?reception():'')+(dome.menu==='bracket'||!preview?'<div class="dome-tree">'+bracket+'</div>':'')+(dome.menu==='profile'&&preview?profilePanel:'')+controls+'</section>';
+ $('#battle-controls').innerHTML='<section class="terminal dome-panel"><h3>DÔME DE COMBAT · 16 PARTICIPANTS · '+(run.mode==='double'?'DUO':'SOLO')+'</h3>'+bossNotice+awardNotice+(preview?reception():'')+(dome.menu==='bracket'||!preview?'<div class="dome-tree">'+bracket+'</div>':'')+(dome.menu==='profile'&&preview?profilePanel:'')+controls+'</section>';
  if($('#dome-opponent'))$('#dome-opponent').onclick=()=>{dome.menu='profile';dome.viewProfile=opponent?.id;renderBattle();};
  if($('#dome-bracket'))$('#dome-bracket').onclick=()=>{dome.menu='bracket';renderBattle();};
  if($('#dome-select'))$('#dome-select').onclick=()=>{dome.menu='select';renderBattle();};
