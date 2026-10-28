@@ -40,7 +40,7 @@ export function playLabTurn(battle,selected){
   if(a.type==='move'){
    if(!m.moves.includes(a.move)&&a.move!=='STRUGGLE')throw Error('Capacité invalide pour '+m.name);
    if(a.move!=='STRUGGLE'&&(m.pp[a.move]||0)<=0)throw Error('Plus de PP : '+a.move);
-   if(a.target&&battle.sideOf(battle.get(a.target))===undefined)throw Error('Cible inconnue.');
+   if(a.target&&!battle.get(a.target))throw Error('Cible inconnue.');
   }else if(!battle.bench(side,m.owner).some(p=>p.id===a.to))throw Error('Remplaçant invalide pour '+m.name);
  }
  // Engine treats only the player side as commandable. Override enemy AI only for this turn,
