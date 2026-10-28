@@ -16,7 +16,7 @@ export function createDomeTournament(playerTeam,participants,data,random=Math.ra
  roster.sort((a,b)=>b.strength-a.strength||(a.player?-1:b.player?1:0));
  roster.forEach((p,i)=>p.seed=i+1);
  const bySeed=new Map(roster.map(p=>[p.seed,p.id]));
- return {phase:'preview',round:0,leadIndex:0,chosen:[0,1],participants:roster,rounds:[DOME_PAIRS.map(pair=>pair.map(seed=>bySeed.get(seed)))],results:[],champion:null};
+ return {phase:'preview',round:0,leadIndex:0,chosen:[0,1],participants:roster,rounds:[DOME_PAIRS.map(pair=>pair.map(seed=>bySeed.get(seed)))],results:[],champion:null,tournamentNumber:1,tournamentsWon:0,history:[]};
 }
 export function domeNextOpponent(dome){
  const pair=dome.rounds[dome.round]?.find(pair=>pair.includes('player'));
@@ -90,4 +90,19 @@ export function domeProfile(participant,data){
  }
  const style=moveStats.defense>=3?'Défensif':moveStats.status>=moveStats.attack?'Technique':'Offensif';
  return {name:participant.name,seed:participant.seed,strength:participant.strength,style,favored,team:team.map(p=>p.species)};
+}
+
+/** Enter the next four-match tournament without resetting the challenge streak. */
+export function startNextDomeTournament(previous,playerTeam,participants,data,random=Math.random){
+ if(previous.champion!=='player'||previous.results?.length!==4)throw Error('Le tournoi précédent doit être remporté avant de continuer.');
+ const next=createDomeTournament(playerTeam,participants,data,random);
+ next.tournamentNumber=(previous.tournamentNumber||1)+1;
+ next.tournamentsWon=(previous.tournamentsWon||0)+1;
+ next.history=[...(previous.history||[]),{
+  number:previous.tournamentNumber||1,
+  champion:'player',
+  participants:previous.participants.map(p=>({id:p.id,name:p.name,seed:p.seed,species:p.team.map(m=>m.species)})),
+  results:previous.results.map(round=>round.map(match=>({pair:[...match.pair],winner:match.winner})))
+ }];
+ return next;
 }
