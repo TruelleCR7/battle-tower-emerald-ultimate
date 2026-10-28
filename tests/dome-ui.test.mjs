@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,DOME_PAIRS} from '../web/dome.mjs';
+import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,domeCpuSelection,startNextDomeTournament,DOME_PAIRS} from '../web/dome.mjs';
 const app=readFileSync(new URL('../web/app.mjs',import.meta.url),'utf8');
 const html=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
 test('Dome is selectable and tournament screens are wired',()=>{
@@ -57,4 +57,37 @@ test('New challenge button navigates to teambuilder and surfaces errors',()=>{
  assert.match(app,/#to-team'\)\.onclick=\(\)=>/);
  assert.match(app,/nav\('team'\)/);
  assert.match(app,/Erreur de préparation de l’équipe/);
+});
+
+test('A tournament champion can enter another tournament with the same team and a fresh bracket',()=>{
+ const opponents=Array.from({length:15},(_,i)=>({name:'CPU '+i,team:team(i+1)}));
+ const original=createDomeTournament(team(0),opponents,data);
+ assert.equal(original.tournamentNumber,1);
+ assert.equal(original.tournamentsWon,0);
+ for(let i=0;i<4;i++)domeResolveRound(original,true,()=>0.2);
+ const next=startNextDomeTournament(original,team(0),opponents,data,()=>0.3);
+ assert.equal(next.tournamentNumber,2);
+ assert.equal(next.tournamentsWon,1);
+ assert.equal(next.round,0);
+ assert.equal(next.champion,null);
+ assert.equal(next.rounds[0].length,8);
+ assert.equal(next.results.length,0);
+ assert.equal(next.history.length,1);
+ assert.equal(next.history[0].results.length,4);
+ assert.ok(domeNextOpponent(next));
+ for(let i=0;i<4;i++)domeResolveRound(next,true,()=>0.2);
+ const third=startNextDomeTournament(next,team(0),opponents,data,()=>0.3);
+ assert.equal(third.tournamentNumber,3);
+ assert.equal(third.tournamentsWon,2);
+ assert.equal(third.history.length,2);
+});
+test('Cannot advance to a new Dome tournament before defeating the final',()=>{
+ const opponents=Array.from({length:15},(_,i)=>({name:'CPU '+i,team:team(i+1)}));
+ const active=createDomeTournament(team(0),opponents,data);
+ assert.throws(()=>startNextDomeTournament(active,team(0),opponents,data),/remporté/);
+});
+test('Dome champion screen offers next tournament and preserves challenge progress',()=>{
+ assert.match(app,/id="dome-next-tournament"/);
+ assert.match(app,/run\.dome=createDomeEntrants\(run\.team,run\.levelMode,previous\)/);
+ assert.match(app,/await begin\(true\)/);
 });
