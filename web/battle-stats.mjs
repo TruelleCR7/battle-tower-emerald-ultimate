@@ -1,3 +1,4 @@
+import {splitCategory} from './split-mode.mjs';
 // Emerald pokemon.c CalculateBaseDamage / battle_main.c GetWhoStrikesFirst /
 // battle_script_commands.c sAccuracyStageRatios. Categories follow this project's split.
 export const STAT_KEYS=['atk','def','spa','spd','spe','acc','eva'];
@@ -18,7 +19,7 @@ export function rawEffectiveStat(engine,m,key,{move=null,target=null}={}){
  if(key==='spa'&&m.item==='LIGHT_BALL'&&m.species==='PIKACHU')value*=2;
  if(key==='def'&&m.item==='METAL_POWDER'&&m.species==='DITTO')value*=2;
  if(key==='atk'&&m.item==='THICK_CLUB'&&['CUBONE','MAROWAK'].includes(m.species))value*=2;
- if(move&&target?.ability==='THICK_FAT'&&['FIRE','ICE'].includes(move.type)&&key===(move.category==='physical'?'atk':'spa'))scale(1,2);
+ if(move&&target?.ability==='THICK_FAT'&&['FIRE','ICE'].includes(move.type)&&key===(splitCategory(engine,move)==='physical'?'atk':'spa'))scale(1,2);
  if(key==='atk'&&m.ability==='HUSTLE')scale(150,100);
  if(key==='spa'&&['PLUS','MINUS'].includes(m.ability)&&engine.active(engine.sideOf(m)).some(p=>p.id!==m.id&&p.hp>0&&p.ability===(m.ability==='PLUS'?'MINUS':'PLUS')))scale(150,100);
  if(key==='atk'&&m.ability==='GUTS'&&m.status)scale(150,100);
@@ -43,12 +44,12 @@ export function accuracyChance(engine,user,target,move){
  let chance=Math.floor(base*a/b);
  if(user.ability==='COMPOUND_EYES')chance=Math.floor(chance*130/100);
  if(target.ability==='SAND_VEIL'&&engine.weather==='sand'&&weatherActive(engine))chance=Math.floor(chance*80/100);
- if(user.ability==='HUSTLE'&&move.category==='physical')chance=Math.floor(chance*80/100);
+ if(user.ability==='HUSTLE'&&splitCategory(engine,move)==='physical')chance=Math.floor(chance*80/100);
  if(['BRIGHT_POWDER','LAX_INCENSE'].includes(target.item))chance=Math.floor(chance*(target.item==='LAX_INCENSE'?95:90)/100);
  return Math.min(100,chance);
 }
 export function baseDamage(engine,user,target,move,{critical=false,spread=false}={}){
- const physical=move.category==='physical',atk=physical?'atk':'spa',def=physical?'def':'spd';
+ const physical=splitCategory(engine,move)==='physical',atk=physical?'atk':'spa',def=physical?'def':'spd';
  let power=move.power;if(['RETURN','FRUSTRATION'].includes(move.originalEffect))power=102;
  if(user.hp<=Math.floor(user.maxHp/3)&&({OVERGROW:'GRASS',BLAZE:'FIRE',TORRENT:'WATER',SWARM:'BUG'})[user.ability]===move.type)power=Math.floor(power*150/100);
  let damage=effectiveStat(engine,user,atk,{critical,move,target})*power*(Math.floor(2*user.level/5)+2);
