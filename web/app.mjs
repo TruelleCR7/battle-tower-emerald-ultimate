@@ -7,6 +7,7 @@ import {createDomeTournament,domeNextOpponent,domeResolveRound,domeSelectTwo,dom
 import {rentalPool,beginFactoryDraft,proposeFactoryExchange,resolveFactoryExchange} from './factory.mjs';
 import {exportSave,validateImport,restoreEngine} from './storage.mjs';
 import {TowerEngine,validateTeam,statsFor,makeMon,TYPE_CHART} from './engine.mjs';
+import {renderCombatMon,renderBattleArena} from './battle-view.mjs';
 const $=sel=>document.querySelector(sel), $$=sel=>[...document.querySelectorAll(sel)];
 const STORE='battle-tower-emerald-v05';const LEGACY_STORE='battle-tower-simple-v03';const deepCopy=o=>JSON.parse(JSON.stringify(o));
 const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -123,7 +124,7 @@ function setupOptions(){
  for(const id of ['move-animations','animation-speed','reduced-motion'])$('#'+id).onchange=()=>{state.preferences={moveAnimations:$('#move-animations').value==='on',animationSpeed:$('#animation-speed').value,respectReducedMotion:$('#reduced-motion').checked};presenter.cancel();store();};
 }
 function statBadges(m){const changes=statChanges(m);return changes.length?`<button class="stat-changes" data-stat-info="${m.id}" aria-label="Changements de statistiques de ${escapeHTML(m.name)}">${changes.map(x=>`<span class="stat-change ${x.stage>0?'raised':'lowered'}">${x.stage>0?'↑':'↓'} ${x.labelText}</span>`).join('')}</button>`:'';}
-function combatMon(m,back){if(!m)return '<div class="battler empty">—</div>';let ratio=Math.max(0,100*m.hp/m.maxHp);return `<div class="battler" data-battler="${m.id}"><div class="combat-mon">${sprite(m.species,back)}</div><div class="battle-identity"><div class="identity-top"><b>${escapeHTML(m.name)}</b><span>N.${m.level}</span></div>${badges(m.species)}<div class="hp-meter"><span class="${ratio<25?'low':ratio<50?'medium':''}" style="width:${ratio}%"></span></div><div class="battle-hp">${back?m.hp+' / '+m.maxHp+' · ':''}${!back&&state.hideEnemyPercent?'PV':percent(m.hp,m.maxHp,state.hpPrecision||1)+' %'}</div>${statusBadges(m)}${statBadges(m)}<button class="stats-info" data-stat-info="${m.id}" aria-label="Statistiques de ${escapeHTML(m.name)}">ⓘ STATS</button></div></div>`}
+function combatMon(m,back){return renderCombatMon(m,back,D,{hideEnemyPercent:state.hideEnemyPercent,hpPrecision:state.hpPrecision||1});}
 function logHTML(log){return groupedLog(log).map(([turn,events])=>`<section class="log-turn"><h3>${turn?'TOUR '+String(turn).padStart(2,'0'):'ENTRÉE EN COMBAT'}</h3><ol>${events.map(e=>`<li class="event-${e.side||'system'}">${escapeHTML(e.text)}</li>`).join('')}</ol></section>`).join('');}
 function memberCard(m){return `${icon(m.species)}<span><b>${escapeHTML(m.name)} · N.${m.level}</b>${badges(m.species)}<span class="hp-meter"><span style="width:${100*m.hp/m.maxHp}%"></span></span><small>${m.hp}/${m.maxHp} PV · ${percent(m.hp,m.maxHp,state.hpPrecision||1)} % · ${escapeHTML(m.status||'OK')}${m.active?' · EN JEU':''}${m.hp<=0?' · K.O.':''}</small></span>`;}
 function renderReplacement(){
@@ -228,7 +229,7 @@ function renderDomeScreen(run,snap){
  };
 }
 function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state.runs.find(r=>r.id===activeRun);$('#battle-mode').textContent=(run?.facility==='factory'?'USINE · ':run?.facility==='dome'?'DÔME · ':MODES[state.mode][0]+' · ')+'NIVEAU '+(state.levelMode==='50'?'50':'LIBRE');$('#battle-heading').textContent=snap.trainer;$('#streak-counter').textContent=run?.facility==='dome'?('TOUR '+Math.min(4,(run.victories||0)+1)+'/4'):`${snap.streak} VICTOIRE(S) · ${snap.round}/7`;
- const enemy=engine.active('opponent'),own=engine.active('player');$('#battle-arena').innerHTML=`<div class="battle-row enemy ${enemy.length>1?'double':''}">${enemy.map(m=>combatMon(m,false)).join('')}</div><div class="battle-row player ${own.length>1?'double':''}">${own.map(m=>combatMon(m,true)).join('')}</div>`;
+ const enemy=engine.active('opponent'),own=engine.active('player');$('#battle-arena').innerHTML=renderBattleArena(engine,{hideEnemyPercent:state.hideEnemyPercent,hpPrecision:state.hpPrecision||1});
  $('#battle-dialogue').innerHTML=logHTML(engine.log.filter(e=>e.turn===engine.turn));$('#battle-log').innerHTML='<h2>Combat '+(engine.streak+1)+'</h2>'+logHTML(engine.log)+(run.pastBattles||[]).slice().reverse().map(b=>`<details><summary>Combat ${b.number} · ${escapeHTML(b.trainer)}</summary>${logHTML(b.log)}</details>`).join('');
  if(run?.facility==='dome'&&(run.dome?.phase==='preview'||snap.status!=='active')){renderDomeScreen(run,snap);spriteFallback($('#battle-board'));return;}
  if(snap.status==='won'&&run?.facility==='factory'){renderFactoryExchange(run);spriteFallback($('#battle-board'));return;}
