@@ -43,7 +43,7 @@ export function pikeMoveControls(engine,actions){
   html+='<div class="moves">'+usable.map(key=>{
    const m=engine.data.moveData[key]||{name:key,pp:0,type:'NORMAL',category:'physical'};
    const selected=choice?.type==='move'&&choice.move===key;
-   return '<button type="button" class="move '+(selected?'sel':'')+'" style="--move-color:'+(TYPES[m.type]?.[1]||'#ddd')+'" aria-pressed="'+selected+'" data-actor="'+esc(mon.id)+'" data-move="'+esc(key)+'"><b>'+(selected?'✓ ':'')+esc(m.name||key)+'</b><small>'+esc(typeName(m.type))+' · '+(splitCategory(engine,m)==='physical'?'Physique':splitCategory(engine,m)==='special'?'Spéciale':'Statut')+'<br>Puiss. '+moveDetails(m,engine.splitMode).power+' · Préc. '+moveDetails(m,engine.splitMode).accuracy+'<br>'+(key==='STRUGGLE'?'—':mon.pp[key]+' / '+m.pp)+' PP</small></button>';
+   return '<button type="button" class="move '+(selected?'sel':'')+'" style="--move-color:'+(TYPES[m.type]?.[1]||'#ddd')+'" aria-pressed="'+selected+'" data-actor="'+esc(mon.id)+'" data-move="'+esc(key)+'"><b>'+(selected?'✓ ':'')+esc(m.name||key)+'</b><small>'+esc(typeName(m.type))+' · '+(splitCategory(engine,m)==='physical'?'Physique':splitCategory(engine,m)==='special'?'Spéciale':'Statut')+'<br>Puissance '+moveDetails(m,engine.splitMode).power+' · Précision '+moveDetails(m,engine.splitMode).accuracy+'<br>'+(key==='STRUGGLE'?'—':mon.pp[key]+' / '+m.pp)+' PP</small></button>';
   }).join('')+'</div>';
   if(choice?.type==='move'){
    const plan=targetPlan(engine,mon.id,choice.move);
