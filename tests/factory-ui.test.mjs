@@ -20,5 +20,5 @@ test('no undefined selector helpers or single-element forEach',()=>{
  assert.doesNotMatch(app,/(?<!\$)\$\('[^']+'\)\.forEach\(/);
 });
 test('Tower records retain their original keys',()=>{
- assert.match(app,/state\.facility==='factory'\?'factory:':state\.facility==='dome'\?'dome:':''/);
+ assert.match(app,/state\.facility==='factory'\?'factory:':state\.facility==='dome'\?'dome:':state\.facility==='palace'\?'palace:':''/);
 });
