@@ -2,9 +2,12 @@ import {createPike,pikePickDoor,pikeResolveEvent,pikeFinishRoom,pikeNextPass,pik
 import {createLabBattle} from './lab-engine.mjs';
 import {TowerEngine} from './engine.mjs';
 import {BattlePresenter} from './battle-presentation.mjs';
+import {bindBattleSprites} from './battle-view.mjs';
+import {targetPlan} from './battle-ui.mjs';
+import {pikeBattleFrame,pikeMoveControls,pikeReplacementControls} from './pike-battle-ui.mjs';
 const $=x=>document.querySelector(x), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const KEY='battle-tower-emerald-reptile-v1';
-let D,save=null,battle=null;
+let D,save=null,battle=null,pikeActions={};
 const labels={trainer:'Combat Solo',double:'Combat Duo',hard_trainer:'Combat difficile + soins',wild:'Rencontre sauvage',status:'Piège de statut',quiet:'Salle paisible',full_heal:'Soins complets',partial_heal:'Soins partiels',brain:'Reine Venin Charline'};
 const nameOf=id=>D.speciesNames?.[id]||id;
 const sprite=(p,back=false)=>{
@@ -36,7 +39,7 @@ const setFor=species=>{
 const partySave=()=>battle?structuredClone(battle.player.party):save.party;
 function persist(){
  if(!save)return;
- if(battle)save.combat=Object.fromEntries(Object.entries(battle).filter(([k])=>!['data','rng','aiAction'].includes(k)));
+ if(battle){save.combatActions=structuredClone(pikeActions);save.combat=Object.fromEntries(Object.entries(battle).filter(([k])=>!['data','rng','aiAction'].includes(k)));}
  localStorage.setItem(KEY,JSON.stringify(save));
  $('#pike-message').textContent='✓ Parcours enregistré sur cet appareil.';
 }
@@ -138,32 +141,59 @@ function combatView(){
   }
  }
  const required=(battle.pendingReplacements||[]).filter(r=>r.owner==='human');
+ if(required.length)stage.innerHTML=pikeBattleFrame(battle,pikeReplacementControls(battle));
+ else stage.innerHTML=pikeBattleFrame(battle,pikeMoveControls(battle,pikeActions));
+ bindBattleSprites(stage);
+ stage.querySelector('#pike-log-toggle').onclick=()=>stage.querySelector('#battle-log').classList.toggle('hidden');
+ stage.querySelectorAll('[data-stat-info]').forEach(btn=>btn.onclick=()=>{
+  const m=battle.get(btn.dataset.statInfo);
+  if(!m)return;
+  const fields=Object.entries(m.stats||{}).map(([k,v])=>k.toUpperCase()+' : '+v+' ('+((m.stages||{})[k]||0)+' niveau(x))').join('\n');
+  alert(m.name+'\n'+fields+'\nTalent : '+m.ability+'\nObjet : '+m.item);
+ });
  if(required.length){
-  const r=required[0],bench=battle.bench(r.side,r.owner);
-  stage.innerHTML='<div class="pike-battle-shell"><div class="pike-battle-top">⚔ REMPLACEMENT APRÈS K.O.</div><div class="pike-arena"><div class="pike-battle-row pike-battle-enemy">'+foes.map(p=>combatant(p,false)).join('')+'</div><div class="pike-battle-row pike-battle-player">'+ours.map(p=>combatant(p,true)).join('')+'</div></div><h3>UN POKÉMON EST K.O.</h3><select id="pike-replacement">'+bench.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('')+'</select><button id="pike-send" class="btn primary">ENVOYER</button></div>';spriteFallback(stage);
-  $('#pike-send').onclick=()=>{try{battle.replaceFainted(r.fainted,$('#pike-replacement').value);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
+  stage.querySelectorAll('[data-pike-replace]').forEach(btn=>btn.onclick=()=>{
+   try{battle.replaceFainted(required[0].fainted,btn.dataset.pikeReplace);pikeActions={};persist();render();}
+   catch(e){$('#pike-message').textContent=e.message;}
+  });
   return;
  }
- stage.innerHTML='<div class="pike-battle-shell"><div class="pike-battle-top"><span>⚔ '+esc(battle.trainer)+'</span><span>TOUR '+(battle.turn+1)+' · '+(battle.mode==='double'?'DUO':'SOLO')+'</span></div>'+
- '<div class="pike-arena" aria-label="Terrain de combat Pokémon"><div class="pike-battle-background"><span class="pike-battle-pillar pike-pillar-left"></span><span class="pike-battle-pillar pike-pillar-right"></span></div><div class="pike-battle-row pike-battle-enemy">'+foes.map(p=>combatant(p,false)).join('')+'</div><div class="pike-battle-row pike-battle-player">'+ours.map(p=>combatant(p,true)).join('')+'</div></div>'+
- '<div class="pike-dialogue" aria-live="polite">'+(battle.log.slice(0,3).map(e=>esc(e.text)).join('<span class="pike-dialogue-separator"> · </span>')||'Un combat commence !')+'</div>'+
- '<div class="pike-commands"><h3>CHOISIS LES ACTIONS DE TON ÉQUIPE</h3>'+ours.map(p=>{
-  const moves=p.charging?[p.charging.move]:p.moves.filter(k=>p.pp[k]>0&&(!p.choiceLock||p.choiceLock===k));
-  const usable=moves.length?moves:['STRUGGLE'];
-  return '<fieldset data-actor="'+esc(p.id)+'"><legend>'+esc(p.name)+(p.charging?' · ATTAQUE EN PRÉPARATION':'')+'</legend><div class="pike-action-grid"><label>CAPACITÉ<select data-move>'+usable.map(k=>'<option value="'+esc(k)+'">'+esc(D.moveData[k]?.name||k)+' · '+(p.pp[k]??'—')+' PP</option>').join('')+'</select></label><label>CIBLE<select data-target>'+foes.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>').join('')+'</select></label><label>CHANGEMENT<select data-switch '+(p.charging?'disabled':'')+'><option value="">— Attaquer —</option>'+battle.bench('player',p.owner).map(q=>'<option value="'+esc(q.id)+'">'+esc(q.name)+'</option>').join('')+'</select></label></div><div class="pike-move-summary">'+usable.map(k=>'<span class="pike-move-badge">'+esc(D.moveData[k]?.name||k)+' <small>'+esc(D.moveData[k]?.category||'')+'</small></span>').join('')+'</div></fieldset>';
- }).join('')+'</div><div class="pike-battle-actions"><button class="btn primary" id="pike-turn">EXÉCUTER LE TOUR ▶</button></div><details class="pike-log-panel" open><summary>JOURNAL DU COMBAT · '+battle.log.length+' ÉVÉNEMENTS</summary><div class="pike-combatlog">'+battle.log.slice(0,45).map(e=>'<p><small>TOUR '+e.turn+'</small> '+esc(e.text)+'</p>').join('')+'</div></details></div>';
- spriteFallback(stage);
- $('#pike-turn').onclick=()=>{
+ stage.querySelectorAll('[data-actor][data-move]').forEach(btn=>btn.onclick=()=>{
+  const actor=btn.dataset.actor,move=btn.dataset.move,plan=targetPlan(battle,actor,move);
+  pikeActions[actor]={actor,type:'move',move,target:plan.targets[0]?.id||battle.active('opponent')[0]?.id};
+  persist();render();
+ });
+ stage.querySelectorAll('[data-pike-target-actor]').forEach(btn=>btn.onclick=()=>{
+  const a=pikeActions[btn.dataset.pikeTargetActor];if(a)a.target=btn.dataset.pikeTargetId;
+  render();
+ });
+ stage.querySelectorAll('[data-pike-baton-actor]').forEach(btn=>btn.onclick=()=>{
+  const a=pikeActions[btn.dataset.pikeBatonActor];if(a)a.to=btn.dataset.pikeBatonTo;
+  render();
+ });
+ stage.querySelectorAll('[data-pike-switch-actor]').forEach(btn=>btn.onclick=()=>{
+  const actor=btn.dataset.pikeSwitchActor;
+  pikeActions[actor]={actor,type:'switch',to:btn.dataset.pikeSwitchTo};
+  persist();render();
+ });
+ const execute=stage.querySelector('#pike-turn');
+ if(execute)execute.onclick=async()=>{
+  execute.disabled=true;
   try{
-   const choices=[...stage.querySelectorAll('[data-actor]')].map(box=>{
-    const actor=box.dataset.actor,to=box.querySelector('[data-switch]').value;
-    return to?{actor,type:'switch',to}:{actor,type:'move',move:box.querySelector('[data-move]').value,target:box.querySelector('[data-target]').value};
+   const own=battle.active('player').filter(m=>m.owner==='human'||m.owner==='human2');
+   const choices=own.map(m=>{
+    if(m.charging)return {actor:m.id,type:'move',move:m.charging.move,target:m.charging.target};
+    return pikeActions[m.id];
    });
    const oldLogLength=battle.log.length;
-   battle.turnActions(choices);const visualEvents=battle.log.slice(0,battle.log.length-oldLogLength).reverse();persist();render();
-   const arena=$('#pike-stage .pike-arena');if(arena)new BattlePresenter(arena).play(visualEvents,{moveAnimations:true,animationSpeed:'fast',respectReducedMotion:true}).catch(console.error);
-  }catch(e){$('#pike-message').textContent='Combat : '+e.message;}
+   battle.turnActions(choices);
+   const visualEvents=battle.log.slice(0,battle.log.length-oldLogLength).reverse();
+   pikeActions={};persist();render();
+   const arena=$('#pike-stage #battle-arena');
+   if(arena)await new BattlePresenter(arena).play(visualEvents,{moveAnimations:true,animationSpeed:'fast',respectReducedMotion:true});
+  }catch(e){$('#pike-message').textContent='Combat : '+e.message;render();}
  };
+
 }
 function render(){
  if(!save)return;
@@ -178,7 +208,7 @@ async function init(){
  const response=await fetch('./data/catalog.json');if(!response.ok)throw Error('Catalogue indisponible');D=await response.json();
  teamBuilder();
  $('#pike-start').onclick=start;
- $('#pike-resume').onclick=()=>{save=load();battle=restoreBattle(save.combat);show('pike-play');render();};
+ $('#pike-resume').onclick=()=>{save=load();battle=restoreBattle(save.combat);pikeActions=save.combatActions||{};show('pike-play');render();};
  $('#pike-save').onclick=persist;
  $('#pike-reset').onclick=restart;
  $('#pike-leave').onclick=()=>{persist();show('pike-intro');$('#pike-resume').classList.remove('hidden');};
