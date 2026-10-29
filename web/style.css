@@ -171,3 +171,12 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 /* Clearly visible status VFX, above Gen V sprites without affecting layout. */
 .battle-status-vfx{position:absolute;z-index:5;left:50%;top:12%;transform:translateX(-50%);pointer-events:none;font:bold clamp(22px,4vw,38px)/1 sans-serif;white-space:nowrap;text-shadow:0 2px 2px #20313d,0 0 12px currentColor;filter:drop-shadow(0 0 7px currentColor)}
 .vfx-sleep{color:#b9c9ff;letter-spacing:4px}.vfx-ice{color:#8ae8ff}.vfx-poison{color:#d68dff}.vfx-electric{color:#ffdb5b}.vfx-fire{color:#ff916b}.vfx-confusion{color:#ffcb6c}
+
+/* Persistent indicators: unlike one-shot hit FX, these survive every battle render. */
+.persistent-vfx{animation:status-hover 2.3s ease-in-out infinite alternate;top:-5%;left:50%;font-size:clamp(20px,3vw,31px);transform:translateX(-50%);opacity:.94}
+.combat-mon .persistent-vfx:nth-of-type(2){top:21%;left:73%}
+@keyframes status-hover{from{translate:0 0;opacity:.68}to{translate:0 -12px;opacity:1}}
+.battler-ko .combat-mon .pokemon-img{opacity:.13;filter:grayscale(1);transform:translateY(15px) scale(.86);animation:none}
+.ko-marker{position:absolute;z-index:7;top:25%;left:50%;transform:translateX(-50%);border:3px solid #fc8187;border-radius:3px;background:#63212d;color:white;padding:4px 9px;font:bold 16px/1 sans-serif;letter-spacing:2px}
+.battler-ko .battle-identity{border-color:#fc8187}
+@media(prefers-reduced-motion:reduce){.persistent-vfx{animation:none}}

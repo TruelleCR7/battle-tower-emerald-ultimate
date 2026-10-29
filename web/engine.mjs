@@ -542,7 +542,7 @@ export class TowerEngine {
   this.pendingReplacements??=[];
   for(const side of ['player','opponent'])for(let slot=0;slot<this[side].active.length;slot++){
    const m=this.get(this[side].active[slot]);if(!m||m.hp>0)continue;
-   m.charging=null;m.active=false;this[side].active[slot]=null;this.write(`${m.name} est K.O. !`);
+   m.charging=null;m.active=false;this[side].active[slot]=null;this.write(`${m.name} est K.O. !`,{kind:'faint',actor:m.id,side});
    if(this.bench(side,m.owner).length)this.pendingReplacements.push({side,slot,owner:m.owner,fainted:m.id});
   }
  }
