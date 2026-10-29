@@ -255,9 +255,9 @@ function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state
   $('#palace-turn').onclick=async()=>{if(storageFailed||presenting)return;$('#palace-turn').disabled=true;
    try{await saveQueue;const backup=deepCopy(state.runs.find(r=>r.id===activeRun));
     try{const logLength=engine.log.length;const commands=controllable.map(m=>actions[m.id]||{actor:m.id,type:'palace'});
-     const result=engine.turnActions(commands),visualEvents=engine.log.slice(0,engine.log.length-logLength).reverse();
+     const beforeHp=Object.fromEntries([...engine.player.party,...engine.opponent.party].map(m=>[m.id,{hp:m.hp,maxHp:m.maxHp}]));const result=engine.turnActions(commands),visualEvents=engine.log.slice(0,engine.log.length-logLength).reverse();
      actions={};if(result.status!=='active')saveRecord(result.status);await saveBattleSession();renderBattle();
-     presenting=true;$('#battle-controls').inert=true;try{await presenter.play(visualEvents,preferences(state));}finally{presenting=false;$('#battle-controls').inert=false;}
+     presenting=true;$('#battle-controls').inert=true;try{await presenter.play(visualEvents,preferences(state),beforeHp);renderBattle();}finally{presenting=false;$('#battle-controls').inert=false;}
     }catch(error){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw error;}
    }catch(error){notify(error.message);if(!storageFailed)renderBattle();}
   };
@@ -281,7 +281,7 @@ function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state
  $$('[data-target-actor]').forEach(b=>b.onclick=()=>{actions[b.dataset.targetActor].target=b.dataset.targetId;saveBattleSession();renderBattle();});
  $$('[data-switch-actor]').forEach(b=>b.onclick=()=>{switchPrompt={actor:b.dataset.switchActor,to:b.dataset.switchTo};renderBattle();$('#confirm-switch').scrollIntoView({block:'nearest'});});
  if($('#confirm-switch')){$('#confirm-switch').onclick=()=>{const {actor,to}=switchPrompt;actions[actor]={actor,type:'switch',to};switchPrompt=null;saveBattleSession();renderBattle();};$('#cancel-switch').onclick=()=>{switchPrompt=null;renderBattle();};}
- $('#commit-turn').onclick=async()=>{if(storageFailed||presenting)return;$('#commit-turn').disabled=true;try{await saveQueue;const backup=deepCopy(state.runs.find(r=>r.id===activeRun));try{const oldLogLength=engine.log.length;const result=engine.turnActions(Object.values(actions));const visualEvents=engine.log.slice(0,engine.log.length-oldLogLength).reverse();actions={};if(result.status!=='active')saveRecord(result.status);await saveBattleSession();renderBattle();presenting=true;$('#battle-controls').inert=true;try{await presenter.play(visualEvents,preferences(state));}finally{presenting=false;$('#battle-controls').inert=false;}}catch(e){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw e;}}catch(e){notify(e.message);if(!storageFailed)renderBattle();}};
+ $('#commit-turn').onclick=async()=>{if(storageFailed||presenting)return;$('#commit-turn').disabled=true;try{await saveQueue;const backup=deepCopy(state.runs.find(r=>r.id===activeRun));try{const oldLogLength=engine.log.length;const beforeHp=Object.fromEntries([...engine.player.party,...engine.opponent.party].map(m=>[m.id,{hp:m.hp,maxHp:m.maxHp}]));const result=engine.turnActions(Object.values(actions));const visualEvents=engine.log.slice(0,engine.log.length-oldLogLength).reverse();actions={};if(result.status!=='active')saveRecord(result.status);await saveBattleSession();renderBattle();presenting=true;$('#battle-controls').inert=true;try{await presenter.play(visualEvents,preferences(state),beforeHp);renderBattle();}finally{presenting=false;$('#battle-controls').inert=false;}}catch(e){engine=restoreEngine(D,backup,TowerEngine);actions=backup.actions||{};throw e;}}catch(e){notify(e.message);if(!storageFailed)renderBattle();}};
  spriteFallback($('#battle-board'));
 }
 
