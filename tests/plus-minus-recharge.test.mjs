@@ -47,7 +47,7 @@ test('Hyper Beam hits and requires recharging on the next turn',()=>{
  assert.ok(eng.log.some(x=>x.text.includes('doit se recharger')));
 });
 test('Hyper Beam miss never causes recharge',()=>{
- const {eng,p}=setup({rng:()=>.999});
+ const {eng,p}=setup({rng:()=>99/65536});
  eng.turnActions([{actor:'p',type:'move',move:'HYPER_BEAM',target:'e'}]);
  assert.equal(p.recharge||0,0);
  assert.equal(p.pp.HYPER_BEAM,4);
