@@ -34,3 +34,9 @@ test('statuts et remplacements produisent des animations ordonnées',()=>{
  assert.deepEqual(cues.map(c=>c.visual),['fire','poison','switch']);
  assert.deepEqual(cues.map(c=>c.index),[0,1,2]);
 });
+
+test('les six altérations disposent de leurs effets visuels',()=>{
+ const statuses=['sleep','freeze','poison','toxic','paralyze','burn','confusion'];
+ const cues=presentationPlan(statuses.map(status=>({kind:'status',status,actor:'target'})),{moveAnimations:true,animationSpeed:'normal',respectReducedMotion:true});
+ assert.deepEqual(cues.map(c=>c.visual),['sleep','ice','poison','poison','electric','fire','confusion']);
+});
