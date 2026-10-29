@@ -20,7 +20,7 @@ export function rawEffectiveStat(engine,m,key,{move=null,target=null}={}){
  if(key==='atk'&&m.item==='THICK_CLUB'&&['CUBONE','MAROWAK'].includes(m.species))value*=2;
  if(move&&target?.ability==='THICK_FAT'&&['FIRE','ICE'].includes(move.type)&&key===(move.category==='physical'?'atk':'spa'))scale(1,2);
  if(key==='atk'&&m.ability==='HUSTLE')scale(150,100);
- if(key==='spa'&&['PLUS','MINUS'].includes(m.ability)&&[...engine.active('player'),...engine.active('opponent')].some(p=>p.ability===(m.ability==='PLUS'?'MINUS':'PLUS')))scale(150,100);
+ if(key==='spa'&&['PLUS','MINUS'].includes(m.ability)&&engine.active(engine.sideOf(m)).some(p=>p.id!==m.id&&p.hp>0&&p.ability===(m.ability==='PLUS'?'MINUS':'PLUS')))scale(150,100);
  if(key==='atk'&&m.ability==='GUTS'&&m.status)scale(150,100);
  if(key==='def'&&m.ability==='MARVEL_SCALE'&&m.status)scale(150,100);
  if(key==='def'&&move?.originalEffect==='EXPLOSION')scale(1,2);
