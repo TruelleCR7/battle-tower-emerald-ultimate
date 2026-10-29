@@ -2,6 +2,27 @@
 // Never imports the two-human manual Laboratory battle constructor.
 import {TowerEngine,makeMon} from './engine.mjs';
 const clone=x=>structuredClone(x);
+/** Build a fresh combat state for each new Pike room battle.
+ * Only expedition resources carry across fights: current HP, major status,
+ * remaining sleep turns, PP and the held item. Temporary effects (including
+ * Choice Band move lock) belong to the previous battle, not the expedition.
+ * Existing Pokémon IDs are retained for saved team identity.
+ */
+export function resetPikePartyForBattle(data,sets,party){
+ return party.map((previous,index)=>{
+  const set=sets[index];
+  if(!set||set.species!==previous.species)throw Error('Équipe du Reptile incompatible avec la sauvegarde.');
+  const clean=makeMon(set,data,'human',previous.level);
+  clean.id=previous.id;
+  clean.hp=Math.max(0,Math.min(clean.maxHp,previous.hp));
+  clean.status=previous.status||'';
+  clean.sleep=clean.status==='sleep'?(previous.sleep||1):0;
+  clean.toxic=0;
+  clean.item=previous.item||'NONE';
+  clean.pp=Object.fromEntries(clean.moves.map(k=>[k,Math.max(0,Math.min(data.moveData[k]?.pp??previous.pp?.[k]??0,previous.pp?.[k]??0))]));
+  return clean;
+ });
+}
 export function createPikeBattle(data,{sets,party,opponents,mode='single',levelMode='50',seed=12345,trainer='Dresseur du Reptile'}){
  if(!['single','double'].includes(mode))throw Error('Format du Reptile invalide.');
  if(!Array.isArray(party)||party.length!==3||!Array.isArray(opponents)||!opponents.length)throw Error('Équipe du Reptile invalide.');
@@ -10,8 +31,7 @@ export function createPikeBattle(data,{sets,party,opponents,mode='single',levelM
  // A door with a Duo encounter must remain playable with one surviving Pokémon.
  const battleMode=mode==='double'&&living.length<2?'single':mode;
  const enemyTeam=opponents.map(s=>makeMon(s,data,'cpu',s.level));
- const playerParty=clone(party);
- playerParty.forEach(p=>{p.owner='human';p.active=false;p.guarded=false;p.flinched=false;p.charging=null;});
+ const playerParty=resetPikePartyForBattle(data,sets,party);
  enemyTeam.forEach(p=>p.active=false);
  const battle=Object.create(TowerEngine.prototype);
  Object.assign(battle,{data,mode:battleMode,levelMode,level:levelMode==='50'?50:Math.max(60,...sets.map(p=>p.level||60)),
