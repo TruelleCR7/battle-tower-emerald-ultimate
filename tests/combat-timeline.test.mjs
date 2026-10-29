@@ -27,3 +27,10 @@ test('les événements de dégâts et soins conservent leur index pour le replay
  assert.deepEqual(cues.map(c=>c.index),[0,1,2]);
  assert.deepEqual(cues.map(c=>c.target),['b','b','b']);
 });
+
+test('statuts et remplacements produisent des animations ordonnées',()=>{
+ const events=[{kind:'status',actor:'a',status:'burn'},{kind:'status',actor:'b',status:'poison'},{kind:'switch',actor:'a',to:'c'}];
+ const cues=presentationPlan(events,{moveAnimations:true,animationSpeed:'normal',respectReducedMotion:false});
+ assert.deepEqual(cues.map(c=>c.visual),['fire','poison','switch']);
+ assert.deepEqual(cues.map(c=>c.index),[0,1,2]);
+});
