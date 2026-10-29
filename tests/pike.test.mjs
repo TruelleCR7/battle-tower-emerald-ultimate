@@ -87,15 +87,24 @@ test('The Pike is chosen in the same installation select and entered via the mai
  assert.match(app,/if\(state\.facility==='pike'\)\{window\.location\.assign\('\.\/pike\.html'\);return;\}/);
  assert.doesNotMatch(app,/\$\('#facility-select'\)\.onchange=e=>\{if\(e\.target\.value==='pike'\)/);
 });
-test('Pike battles have a Pokémon sprite battlefield with hit points and animations',()=>{
+test('Pike and all other facilities share the same battle arena and controls',()=>{
  const ui=readFileSync(new URL('../web/pike-ui.mjs',import.meta.url),'utf8');
+ const shared=readFileSync(new URL('../web/battle-view.mjs',import.meta.url),'utf8');
+ const pikeView=readFileSync(new URL('../web/pike-battle-ui.mjs',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../web/app.mjs',import.meta.url),'utf8');
  const css=readFileSync(new URL('../web/pike.css',import.meta.url),'utf8');
  const svg=readFileSync(new URL('../web/pike-door.svg',import.meta.url),'utf8');
- assert.match(ui,/gen5ani-back/);
- assert.match(ui,/pike-battle-enemy/);
- assert.match(ui,/pike-battle-player/);
- assert.match(ui,/data-battler/);
- assert.match(ui,/pike-health-track/);
+ assert.match(app,/renderBattleArena\(engine/);
+ assert.match(pikeView,/renderBattleArena\(engine\)/);
+ assert.match(pikeView,/class="pixel-frame"/);
+ assert.match(pikeView,/class="arena"/);
+ assert.match(pikeView,/class="controls"/);
+ assert.match(pikeView,/class="move /);
+ assert.match(pikeView,/class="target-card /);
+ assert.match(pikeView,/class="bench-card"/);
+ assert.match(shared,/gen5ani-back/);
+ assert.match(shared,/data-battler/);
+ assert.match(shared,/hp-meter/);
  assert.match(ui,/new BattlePresenter\(arena\)/);
  assert.match(ui,/pike-door\.svg/);
  assert.match(css,/image-rendering:pixelated/);
