@@ -46,8 +46,11 @@ const DEFENSE_EFFECTS=new Set(['heal','rest','protect','calm','swords','dragonda
  'ACCURACY_UP','EVASION_UP','EVASION_UP_2','SAFEGUARD']);
 export function palaceMoveGroup(move){
  if(!move)return 'support';
- if(move.category!=='status'&&move.power>0)return 'attack';
- if(move.target==='self'||move.target==='enemyfield'||DEFENSE_EFFECTS.has(move.effect)||DEFENSE_EFFECTS.has(move.originalEffect))return 'defense';
+ // pokeemerald GetBattlePalaceMoveGroup uses move targeting first.
+ if(move.target==='self')return 'defense';
+ if(move.target==='enemyfield')return 'support';
+ if(move.power>0&&move.category!=='status')return 'attack';
+ if(DEFENSE_EFFECTS.has(move.effect)||DEFENSE_EFFECTS.has(move.originalEffect))return 'defense';
  return 'support';
 }
 const choice=(rng,list)=>list[Math.min(list.length-1,Math.floor(rng()*list.length))];
