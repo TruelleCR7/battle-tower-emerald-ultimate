@@ -411,7 +411,7 @@ export class TowerEngine {
   if(move.effect==='explode'&&m.hp>0){this.hpLoss(m,m.hp,'Explosion');}
   if(landed&&move.effect==='superpower'){this.modify(m,'atk',-1);this.modify(m,'def',-1);}
   if(landed&&move.originalEffect==='OVERHEAT')this.modify(m,'spa',-2);
-  if(move.effect==='recharge')m.recharge=1;
+  if(move.effect==='recharge'&&landed)m.recharge=1;
   if(move.effect==='uturn'&&m.hp>0){const r=this.bench(this.sideOf(m),m.owner);if(r.length)this.switchMon(m,r[0].id);}
  }
  selfMove(m,move,action={}){
