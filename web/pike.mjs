@@ -1,3 +1,4 @@
+import {TowerEngine} from './engine.mjs';
 // Battle Pike / Reptile de Combat — Emerald-inspired seven door choices per pass.
 // All choices are generated in advance and kept in the saved Pike state.
 export const PIKE_EVENTS=['trainer','full_heal','double','quiet','hard_trainer','wild','status','partial_heal'];
@@ -33,23 +34,33 @@ export function pikePickDoor(pike,index){
  pike.roomEvent=door.event;pike.phase=['trainer','double','hard_trainer','wild','brain'].includes(door.event)?'battle':'event';
  pike.selectedDoor=index;return door;
 }
-export function pikeStatusEffect(party,random=Math.random){
+export function pikeStatusEffect(party,random=Math.random,data=null){
  const candidates=party.filter(p=>p.hp>0&&!p.status);
  const number=Math.min(candidates.length,1+Math.floor(Math.max(0,party.length-1)*random()));
  const effects=['poison','freeze','paralyze','burn','sleep'];
  const messages=[];
+ // The Pike trap must obey the same status immunities and berries as a battle.
+ // Reuse the engine's inflict() and useBerry() instead of setting status directly.
+ const engine=data?Object.assign(Object.create(TowerEngine.prototype),{
+  data,player:{party,active:[]},opponent:{party:[],active:[]},log:[],turn:0,rng:random,
+ }):null;
  for(let i=0;i<number;i++){
   if(!candidates.length)break;
   const chosen=candidates.splice(int(random,candidates.length),1)[0];
   const type=pick(random,effects);
-  chosen.status=type;
-  if(type==='sleep')chosen.sleep=2+int(random,3);
-  if(type==='toxic')chosen.toxic=0;
-  messages.push(chosen.name+' : '+type);
+  if(engine){
+   if(engine.inflict(chosen,type)){
+    messages.push(chosen.name+' : '+type+(chosen.status?'':' (soigné par une baie)'));
+   }else messages.push(chosen.name+' résiste à '+type+'.');
+  }else{
+   // Retain a catalogue-free mode for isolated event simulations.
+   chosen.status=type;if(type==='sleep')chosen.sleep=2+int(random,3);
+   messages.push(chosen.name+' : '+type);
+  }
  }
  return messages.length?'Une attaque surprise ! '+messages.join(' · '):'Aucun Pokémon valide ne peut être affecté.';
 }
-export function pikeResolveEvent(pike,party,random=Math.random,moveData=null){
+export function pikeResolveEvent(pike,party,random=Math.random,moveData=null,data=null){
  if(pike.phase!=='event')throw Error('Cette salle nécessite un combat.');
  const event=pike.roomEvent;let message='';
  if(event==='full_heal'){
@@ -60,7 +71,7 @@ export function pikeResolveEvent(pike,party,random=Math.random,moveData=null){
   const count=Math.min(targets.length,1+int(random,2));
   for(let i=0;i<count;i++){let p=targets.splice(int(random,targets.length),1)[0];p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;if(moveData)p.pp=Object.fromEntries(Object.entries(p.pp).map(([k,v])=>[k,moveData[k]?.pp??v]));}
   message=count?'Un bienfaiteur soigne '+count+' Pokémon.':'Personne ne nécessite de soins.';
- }else if(event==='status')message=pikeStatusEffect(party,random);
+ }else if(event==='status')message=pikeStatusEffect(party,random,data);
  else if(event==='quiet')message='La salle est paisible. Vous traversez sans rencontrer de danger.';
  else throw Error('Événement inconnu.');
  pike.eventMessage=message;pike.phase='resolved';
