@@ -29,7 +29,7 @@ test('Pike CPU trainer uses normal opponent ownership and non-manual AI',()=>{
  assert.ok(e.opponent.party.every(p=>p.owner==='cpu'));
  assert.equal(e.opponent.party[0].active,true);
  assert.equal(e.player.party[0].owner,'human');
- assert.notEqual(e.aiAction,TowerEngine.prototype.aiAction);
+ assert.equal(e.aiAction,TowerEngine.prototype.aiAction);
  assert.ok(e.data.aiScript);
 });
 test('Duo room is playable with one survivor and does not lock the user',()=>{
