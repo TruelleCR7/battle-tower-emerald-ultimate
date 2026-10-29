@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPikeBattle,repairPikeBattle} from '../web/pike-battle.mjs';
+import {createPikeBattle,repairPikeBattle,resetPikePartyForBattle} from '../web/pike-battle.mjs';
 import {TowerEngine,makeMon} from '../web/engine.mjs';
 import {readFileSync} from 'node:fs';
 const data={
@@ -92,4 +92,61 @@ test('The surviving third Pokémon can complete a real combat turn',()=>{
  assert.equal(e.turn,1);
  assert.ok(e.log.some(x=>x.text.includes('utilise Charge')));
  assert.ok(e.player.party.slice(0,2).every(x=>x.hp===0));
+});
+
+test('Choice Band locks only the current fight; a new Pike battle offers all remaining-PP moves',()=>{
+ const original=party(),metagross=original[0];
+ metagross.item='CHOICE_BAND';
+ metagross.moves=['TACKLE','SWORDS_DANCE'];
+ metagross.pp.SWORDS_DANCE=9;
+ metagross.pp.TACKLE=20;
+ metagross.choiceLock='TACKLE';
+ metagross.lastMove='TACKLE';
+ metagross.hp=Math.max(1,metagross.maxHp-47);
+ metagross.status='paralyze';
+ metagross.stages.atk=4;
+ metagross.protectCount=2;
+ metagross.substitute=27;
+ metagross.charging={move:'TACKLE',kind:'fly',target:'someone'};
+ metagross.seeded=true;
+ const opponentSet=set('B');
+ const e=createPikeBattle(data,{
+  sets:[{...sets[0],item:'CHOICE_BAND',moves:['TACKLE','SWORDS_DANCE']},sets[1],sets[2]],
+  party:original,opponents:[opponentSet],mode:'single',levelMode:'50',trainer:'Nouvelle salle'
+ });
+ const next=e.player.party[0];
+ assert.equal(next.item,'CHOICE_BAND');
+ assert.equal(next.choiceLock,'');
+ assert.equal(next.lastMove,'');
+ assert.equal(next.stages.atk,0);
+ assert.equal(next.protectCount,0);
+ assert.equal(next.substitute,0);
+ assert.equal(next.charging,undefined);
+ assert.equal(next.seeded,false);
+ assert.equal(next.hp,metagross.hp);
+ assert.equal(next.status,'paralyze');
+ assert.equal(next.pp.TACKLE,20);
+ assert.equal(next.pp.SWORDS_DANCE,9);
+ assert.deepEqual(next.moves,['TACKLE','SWORDS_DANCE']);
+ assert.equal(next.id,metagross.id);
+});
+test('Entering a fresh room resets temporary effects for all three party members',()=>{
+ const old=party();
+ for(const p of old){p.choiceLock='TACKLE';p.stages.def=-3;p.flinched=true;p.confused=3;p.recharge=1;p.focusEnergy=1;}
+ old[1].hp=0;old[2].status='sleep';old[2].sleep=2;
+ const clean=resetPikePartyForBattle(data,sets,old);
+ assert.ok(clean.every(p=>p.choiceLock===''&&p.stages.def===0&&!p.flinched&&p.recharge===0&&p.confused===undefined));
+ assert.equal(clean[1].hp,0);
+ assert.equal(clean[2].status,'sleep');
+ assert.equal(clean[2].sleep,2);
+ assert.deepEqual(clean.map(p=>p.id),old.map(p=>p.id));
+});
+test('Choice Band lock still functions inside the same battle',()=>{
+ const setBand={...sets[0],item:'CHOICE_BAND',moves:['TACKLE']};
+ const e=createPikeBattle(data,{sets:[setBand,sets[1],sets[2]],party:[makeMon(setBand,data,'human',50),...party().slice(1)],
+  opponents:[set('B')],mode:'single',levelMode:'50',trainer:'Dresseur'});
+ const p=e.active('player')[0],enemy=e.active('opponent')[0];
+ e.aiAction=mon=>({actor:mon.id,type:'move',move:'TACKLE',target:p.id});
+ e.turnActions([{actor:p.id,type:'move',move:'TACKLE',target:enemy.id}]);
+ assert.equal(p.choiceLock,'TACKLE');
 });
