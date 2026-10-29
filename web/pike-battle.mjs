@@ -57,6 +57,12 @@ export function repairPikeBattle(battle){
   }
   if(side==='opponent')for(const p of team.party)p.owner='cpu';
  }
+ // Old saves may contain the Laboratory's introduction. Keep combat turns
+ // and events, but remove that unrelated mode's introductory text.
+ if(Array.isArray(battle.log)){
+  const filtered=battle.log.filter(e=>!String(e.text||'').includes('Laboratoire : les deux équipes'));
+  if(filtered.length!==battle.log.length){battle.log=filtered;repaired=true;}
+ }
  if(repaired){battle.pendingReplacements=[];battle.checkEnd();}
  return repaired;
 }
