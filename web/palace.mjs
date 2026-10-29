@@ -41,7 +41,7 @@ export function palaceChooseMove(engine,mon){
  (!mon.encored||mon.encored===key)&&!(mon.taunted&&engine.data.moveData[key]?.category==='status'));
  if(mon.charging)return {actor:mon.id,type:'move',move:mon.charging.move,target:mon.charging.target};
  if(!usable.length)return {actor:mon.id,type:'move',move:'STRUGGLE',target:target?.id};
- const low=mon.hp*2<mon.maxHp&&mon.status!=='sleep'; // original checks below half and awake
+ const low=mon.hp*2<=mon.maxHp&&mon.status!=='sleep'; // original checks below half and awake
  const chances=palaceChances(mon.nature,low),roll=Math.floor(engine.rng()*100);
  const group=roll<chances.attack?'attack':roll<chances.attack+chances.defense?'defense':'support';
  let candidates=usable.filter(key=>palaceMoveGroup(engine.data.moveData[key])===group);
