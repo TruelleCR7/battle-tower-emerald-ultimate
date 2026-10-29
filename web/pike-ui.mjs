@@ -58,12 +58,12 @@ function start(){
  try{
   const species=[...document.querySelectorAll('[data-pike-species]')].map(s=>s.value);
   if(new Set(species).size!==3)throw Error('Choisis trois espèces différentes.');
-  const levelMode=$('#pike-level').value;
+  const levelMode=$('#pike-level').value,splitMode=$('#pike-split').value;
   const level=levelMode==='50'?50:60;
   const sets=species.map(key=>({...setFor(key),level}));
   const pike=createPike(sets);
-  const temp=createPikeBattle(D,{sets,party:sets.map(p=>makeMon(p,D,'human',p.level)),opponents:[setFor('SEVIPER')],mode:'single',levelMode,seed:83479,trainer:'Préparation'});
-  save={pike,sets,levelMode,party:structuredClone(temp.player.party),combat:null,history:[]};
+  const temp=createPikeBattle(D,{sets,party:sets.map(p=>makeMon(p,D,'human',p.level)),opponents:[setFor('SEVIPER')],mode:'single',levelMode,splitMode,seed:83479,trainer:'Préparation'});
+  save={pike,sets,levelMode,splitMode,party:structuredClone(temp.player.party),combat:null,history:[]};
   battle=null;persist();render();show('pike-play');
  }catch(err){$('#pike-message').textContent=err.message;}
 }
@@ -86,7 +86,7 @@ function setupBattle(door){
  const level=save.levelMode==='50'?50:Math.max(60,...save.sets.map(p=>p.level));
  opponents=opponents.map(p=>({...p,level}));
  // Each expedition battle runs the actual Frontier engine, with its normal CPU AI.
- const e=createPikeBattle(D,{sets:save.sets,party:save.party,opponents,mode,levelMode:save.levelMode,
+ const e=createPikeBattle(D,{sets:save.sets,party:save.party,opponents,mode,levelMode:save.levelMode,splitMode:save.splitMode||'move',
   seed:Math.floor(Math.random()*0xffffffff),trainer:title});
  e.trainerData={id:'pike-'+save.pike.totalRooms,name:title};
  battle=e;pikeActions={};save.combat=null;persist();
