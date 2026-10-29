@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {palaceChances,palaceMoveGroup,palaceChooseMove,palaceTier,PALACE_NATURES,palaceBrainSets} from '../web/palace.mjs';
+import {palaceChances,palaceMoveGroup,palaceChooseMove,palaceTier,PALACE_NATURES,PALACE_TARGETS,palaceTarget,palaceBrainSets} from '../web/palace.mjs';
 import {TowerEngine} from '../web/engine.mjs';
 const moveData={
  TACKLE:{name:'Charge',category:'physical',power:40,pp:35,target:'enemy',effect:'damage',type:'NORMAL',accuracy:100},
@@ -98,4 +98,21 @@ test('Palace is available through the normal mode selection and uses no manual m
  assert.match(app,/id="palace-turn"/);
  assert.match(app,/type:'palace'/);
  assert.match(app,/created.facility='palace'/);
+});
+
+test('Palace Duo targeting follows the original nature-based stronger/weaker/random preferences',()=>{
+ const foes=[{id:'strong',hp:180},{id:'weak',hp:30}];
+ assert.equal(palaceTarget(foes,'HARDY',()=>0).id,'strong');
+ assert.equal(palaceTarget(foes,'BRAVE',()=>0).id,'weak');
+ assert.equal(palaceTarget(foes,'DOCILE',()=>.99).id,'weak');
+ assert.equal(Object.keys(PALACE_TARGETS).length,25);
+ foes[0].hp=30;
+ assert.equal(palaceTarget(foes,'BRAVE',()=>0).id,'strong','equal HP targets randomly');
+});
+test('Original Emerald fallback prefers repeated defensive moves over a single offensive move',()=>{
+ const {e,p}=battle();
+ p.nature='BRAVE';p.moves=['TACKLE','PROTECT','PROTECT'];p.pp={TACKLE:5,PROTECT:5};
+ // Roll high -> Support (unavailable), allow fallback, choose defensive move.
+ let index=0;e.rng=()=>[.99,0,0][index++];
+ assert.equal(palaceChooseMove(e,p).move,'PROTECT');
 });
