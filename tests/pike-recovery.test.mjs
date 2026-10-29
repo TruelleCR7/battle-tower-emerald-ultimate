@@ -75,3 +75,21 @@ test('Pike interface renders red framed K.O. badges, not normal status',()=>{
  assert.match(ui,/repairPikeBattle\(battle\)/);
  assert.doesNotMatch(ui,/createLabBattle/);
 });
+
+test('Restoring a Pike battle removes stale Laboratory introductions',()=>{
+ const e=battle(party());
+ e.log.unshift({turn:0,text:'Laboratoire : les deux équipes sont sous ton contrôle.'});
+ assert.equal(repairPikeBattle(e),true);
+ assert.ok(e.log.every(x=>!x.text.includes('Laboratoire')));
+});
+test('The surviving third Pokémon can complete a real combat turn',()=>{
+ const p=party();p[0].hp=0;p[1].hp=0;
+ const e=battle(p),lead=e.active('player')[0],enemy=e.active('opponent')[0];
+ // The real engine resolves the full turn. Keep the CPU decision deterministic in
+ // this test; the production Pike uses TowerEngine.prototype.aiAction.
+ e.aiAction=m=>({actor:m.id,type:'move',move:'TACKLE',target:lead.id});
+ assert.doesNotThrow(()=>e.turnActions([{actor:lead.id,type:'move',move:'TACKLE',target:enemy.id}]));
+ assert.equal(e.turn,1);
+ assert.ok(e.log.some(x=>x.text.includes('utilise Charge')));
+ assert.ok(e.player.party.slice(0,2).every(x=>x.hp===0));
+});
