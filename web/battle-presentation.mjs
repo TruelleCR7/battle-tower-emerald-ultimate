@@ -14,7 +14,7 @@ export class BattlePresenter{
   const plan=presentationPlan(events,prefs,globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false);
   for(const cue of plan){if(generation!==this.generation)break;
    const feed=this.root.querySelector('#battle-dialogue');const entries=feed?.querySelectorAll('.log-turn li');
-   const current=entries?.[cue.index];if(current){feed.querySelector('.is-playing')?.classList.remove('is-playing');current.classList.add('is-playing');current.scrollIntoView?.({block:'nearest',behavior:'instant'});}
+   const precedingMarkers=events.slice(0,cue.index).filter(e=>e.text?.startsWith('— Tour ')).length;const current=entries?.[cue.index-precedingMarkers];if(current){feed.querySelector('.is-playing')?.classList.remove('is-playing');current.classList.add('is-playing');current.scrollIntoView?.({block:'nearest',behavior:'instant'});}
    const target=this.root.querySelector(`[data-battler="${cue.target||cue.actor}"]`),actor=this.root.querySelector(`[data-battler="${cue.actor}"]`);if(!target)continue;
    let element=target,frames;
    if(cue.visual==='contact'){element=actor||target;frames=[{transform:'translateX(0)'},{transform:'translateX(18px)',offset:.35},{transform:'translateX(-3px)',offset:.7},{transform:'translateX(0)'}];}
