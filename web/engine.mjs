@@ -282,7 +282,9 @@ export class TowerEngine {
   if(effect==='PSYCH_UP'){this.setStages(m,t.stages,'Boost');return true;}
   if(effect==='HAZE'){for(const p of [...this.active('player'),...this.active('opponent')])this.setStages(p,{},'Buée Noire');this.write('Buée Noire annule tous les changements de statistiques.');return true;}
   if(effect==='BELLY_DRUM'){const cost=Math.max(1,Math.floor(m.maxHp/2));if(m.hp<=cost||m.stages.atk===6){this.write('Cognobidon échoue.');return true;}this.modify(m,'atk',6-m.stages.atk);this.hpLoss(m,cost,'Cognobidon');return true;}
-  if(['SWAGGER','FLATTER'].includes(effect)){if(t.substitute>0){this.write('Le clone bloque la capacité.');return true;}this.modify(t,effect==='SWAGGER'?'atk':'spa',effect==='SWAGGER'?2:1,m);if(!t.confused&&t.ability!=='OWN_TEMPO')t.confused=2+(Math.floor(this.rng()*65536)%4);this.write(t.ability==='OWN_TEMPO'?`${t.name} est protégé de la confusion par Tempo Perso.`:`${t.name} est confus.`);return true;}
+  if(['SWAGGER','FLATTER'].includes(effect)){if(t.substitute>0){this.write('Le clone bloque la capacité.');return true;}this.modify(t,effect==='SWAGGER'?'atk':'spa',effect==='SWAGGER'?2:1,m);const protectedConfusion=t.ability==='OWN_TEMPO'||(this.sideOf(m)!==this.sideOf(t)&&this.safeguards?.[this.sideOf(t)]>0);
+   if(!t.confused&&!protectedConfusion)t.confused=2+(Math.floor(this.rng()*65536)%4);
+   this.write(protectedConfusion?`${t.name} est protégé de la confusion.`:`${t.name} est confus.`);return true;}
   if(effect==='MIST'){(this.mist??={})[this.sideOf(m)]=5;this.write('Brume protège des baisses de statistiques.');return true;}
   return false;
  }
