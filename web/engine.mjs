@@ -288,6 +288,10 @@ export class TowerEngine {
  }
  inflict(m,status,source=null){
   if(m.status)return false;
+  if(source&&source!==m&&this.sideOf(source)!==this.sideOf(m)&&this.safeguards?.[this.sideOf(m)]>0){
+   this.write(`Rune Protect protège ${m.name} !`);
+   return false;
+  }
   const ty=this.data.species[m.species].types;
   if((status==='burn'&&ty.includes('FIRE'))||(['poison','toxic'].includes(status)&&(ty.includes('POISON')||ty.includes('STEEL')))||
     (status==='paralyze'&&m.ability==='LIMBER')||(status==='sleep'&&['INSOMNIA','VITAL_SPIRIT'].includes(m.ability))||(status==='burn'&&m.ability==='WATER_VEIL')||(['poison','toxic'].includes(status)&&m.ability==='IMMUNITY')||(status==='freeze'&&(ty.includes('ICE')||m.ability==='MAGMA_ARMOR')))return false;
@@ -409,6 +413,13 @@ export class TowerEngine {
   if(move.effect==='uturn'&&m.hp>0){const r=this.bench(this.sideOf(m),m.owner);if(r.length)this.switchMon(m,r[0].id);}
  }
  selfMove(m,move,action={}){
+  if(move.originalEffect==='SAFEGUARD'||move.effect==='safeguard'){
+   const side=this.sideOf(m);
+   if(this.safeguards?.[side]>0){this.write('Rune Protect est déjà actif.');return;}
+   (this.safeguards??={})[side]=5;
+   this.write(`Rune Protect protège l'équipe de ${m.name} !`);
+   return;
+  }
   if(this.statMove(m,m,move))return;
   switch(move.effect){
    case 'heal':if(m.hp<m.maxHp)this.heal(m,m.maxHp/2);else this.write('Tous les PV sont déjà présents.');break;
@@ -442,7 +453,7 @@ export class TowerEngine {
    case 'burn':this.inflict(t,'burn',m);break;
    case 'paralyze':this.inflict(t,'paralyze',m);break;
    case 'toxic':this.inflict(t,'toxic',m);break;
-   case 'sleep':this.inflict(t,'sleep');break;
+   case 'sleep':this.inflict(t,'sleep',m);break;
    case 'seed':if(!this.data.species[t.species].types.includes('GRASS')){t.seeded=true;this.write(`${t.name} est vampigrainé.`);}break;
    case 'whirlwind':{const r=this.bench(this.sideOf(t),t.owner);if(r.length)this.switchMon(t,r[randInt(this.rng,r.length)].id);break;}
    default:this.write('⚠ Effet non porté : '+move.name+' ('+move.originalEffect+').');
@@ -472,10 +483,10 @@ export class TowerEngine {
   const down={ATTACK_DOWN_HIT:'atk',DEFENSE_DOWN_HIT:'def',SPEED_DOWN_HIT:'spe',SPECIAL_ATTACK_DOWN_HIT:'spa',SPECIAL_DEFENSE_DOWN_HIT:'spd',ACCURACY_DOWN_HIT:'acc'}[e];if(down)this.modify(t,down,-1,m);
   if(e==='ATTACK_UP_HIT')this.modify(m,'atk',1);if(e==='DEFENSE_UP_HIT')this.modify(m,'def',1);
   if(e==='ALL_STATS_UP_HIT')for(const stat of ['atk','def','spa','spd','spe'])this.modify(m,stat,1);
-  if(e==='FLINCH_HIT')t.flinched=true;
+  if(e==='FLINCH_HIT'&&t.ability!=='INNER_FOCUS')t.flinched=true;
  }
  endOfTurn(){
-  for(const field of ['reflections','lightScreens','mist'])for(const side of ['player','opponent'])if(this[field]?.[side]>0)this[field][side]--;
+  for(const field of ['reflections','lightScreens','mist','safeguards'])for(const side of ['player','opponent'])if(this[field]?.[side]>0)this[field][side]--;
   for(const m of [...this.active('player'),...this.active('opponent')]){
    if(m.hp<=0)continue;
    // Emerald: Shed Skin has a 1-in-3 chance to cure status before residual
@@ -535,7 +546,7 @@ export class TowerEngine {
   if(this.countAlive('opponent')===0){this.status='won';this.write('Victoire ! Le combat est remporté.');this.score=1;}
   else if(this.countAlive('player')===0){this.status='lost';this.write('Défaite. La série s’arrête.');this.score=0;}
  }
- snapshot(){return {mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,
+ snapshot(){return {mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
    weather:this.weather,trainer:this.trainer,log:this.log.slice(0,75),player:deep(this.player),opponent:deep(this.opponent),hazards:deep(this.hazards)};}
  exportState(){let snap=this.snapshot();delete snap.log;return snap;}
 }
