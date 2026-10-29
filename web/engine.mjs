@@ -478,6 +478,14 @@ export class TowerEngine {
   for(const field of ['reflections','lightScreens','mist'])for(const side of ['player','opponent'])if(this[field]?.[side]>0)this[field][side]--;
   for(const m of [...this.active('player'),...this.active('opponent')]){
    if(m.hp<=0)continue;
+   // Emerald: Shed Skin has a 1-in-3 chance to cure status before residual
+   // poison/burn damage, not the 30% chance from Generation IV.
+   if(m.ability==='SHED_SKIN'&&m.status&&this.rng()<1/3){
+    m.status='';m.sleep=0;m.toxic=0;
+    this.write(`${m.name} guérit grâce à Mue !`,{kind:'status',actor:m.id,side:this.sideOf(m)});
+   }
+   // Speed Boost does not activate on the turn a Pokémon switches in.
+   if(m.ability==='SPEED_BOOST'&&m.enteredTurn!==this.turn)this.modify(m,'spe',1);
    if(m.status==='burn'||m.status==='poison')this.hpLoss(m,m.maxHp/8,m.status);
    if(m.status==='toxic'){m.toxic++;this.hpLoss(m,m.maxHp*m.toxic/16,'toxic');}
    if(m.seeded){const enemySide=this.sideOf(m)==='player'?'opponent':'player',caster=this.active(enemySide)[0];let val=this.hpLoss(m,m.maxHp/8,'Vampigraine');if(caster&&caster.hp>0)this.heal(caster,val);}
