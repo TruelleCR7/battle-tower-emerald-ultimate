@@ -180,3 +180,16 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 .ko-marker{position:absolute;z-index:7;top:25%;left:50%;transform:translateX(-50%);border:3px solid #fc8187;border-radius:3px;background:#63212d;color:white;padding:4px 9px;font:bold 16px/1 sans-serif;letter-spacing:2px}
 .battler-ko .battle-identity{border-color:#fc8187}
 @media(prefers-reduced-motion:reduce){.persistent-vfx{animation:none}}
+
+/* Showdown-inspired Substitute: original sprite recessed and greyed behind the doll. */
+.battler-substitute .combat-mon .pokemon-img{opacity:.34;filter:grayscale(1) brightness(.84);transform:translate(-22px,-10px) scale(.83);animation:none}
+.substitute-doll{position:absolute;z-index:4;left:54%;bottom:11px;width:76px;height:83px;transform:translateX(-50%);border:4px solid #3c6658;border-radius:49% 49% 43% 43%;background:radial-gradient(circle at 30% 26%,#c4f3b1 0 20%,#86c58b 43%,#4a9474 80%);box-shadow:inset -9px -10px 0 #4f9679,3px 5px 0 #395c56,0 0 0 2px #b5dcb2;animation:clone-bob 1.9s steps(3,end) infinite alternate}
+.substitute-ears:before,.substitute-ears:after{content:'';position:absolute;top:-18px;width:27px;height:35px;background:#79b787;border:4px solid #3c6658;border-radius:75% 10% 50% 10%;z-index:-1}
+.substitute-ears:before{left:1px;transform:rotate(-26deg)}.substitute-ears:after{right:1px;transform:scaleX(-1) rotate(-26deg)}
+.substitute-eyes:before,.substitute-eyes:after{content:'';position:absolute;top:34px;width:8px;height:11px;background:#244239;border-radius:50%}
+.substitute-eyes:before{left:19px}.substitute-eyes:after{right:19px}
+.substitute-mouth{position:absolute;left:31px;top:49px;width:10px;height:5px;border-bottom:3px solid #244239;border-radius:50%}
+.condition-substitute{background:#448d6b;color:#fff;border:1px solid #b2e6be}
+@keyframes clone-bob{to{translate:0 -5px}}
+@media(max-width:600px){.substitute-doll{width:56px;height:62px;bottom:18px}.substitute-eyes:before,.substitute-eyes:after{top:22px}.substitute-eyes:before{left:12px}.substitute-eyes:after{right:12px}.substitute-mouth{left:21px;top:39px}}
+@media(prefers-reduced-motion:reduce){.substitute-doll{animation:none}}
