@@ -11,6 +11,24 @@ export const PALACE_NATURES={
  QUIRKY:[56,22,56,22]
 };
 export const PALACE_GROUPS=['attack','defense','support'];
+export const PALACE_TARGETS={
+ HARDY:'stronger',LONELY:'stronger',BRAVE:'weaker',ADAMANT:'stronger',
+ NAUGHTY:'weaker',BOLD:'weaker',DOCILE:'random',RELAXED:'stronger',
+ IMPISH:'stronger',LAX:'stronger',TIMID:'weaker',HASTY:'weaker',
+ SERIOUS:'weaker',JOLLY:'stronger',NAIVE:'random',MODEST:'weaker',
+ MILD:'stronger',QUIET:'weaker',BASHFUL:'weaker',RASH:'stronger',
+ CALM:'stronger',GENTLE:'stronger',SASSY:'weaker',CAREFUL:'weaker',QUIRKY:'stronger'
+};
+export function palaceTarget(foes,nature,rng=Math.random){
+ if(!foes.length)return null;
+ if(foes.length===1)return foes[0];
+ if(foes[0].hp===foes[1].hp)return choice(rng,foes);
+ const preference=PALACE_TARGETS[nature]||'random';
+ if(preference==='random')return choice(rng,foes);
+ return foes.reduce((best,foe)=>preference==='stronger'?
+   (foe.hp>best.hp?foe:best):(foe.hp<best.hp?foe:best),foes[0]);
+}
+
 export const PALACE_GROUP_LABELS={attack:'Attaque',defense:'Défense',support:'Soutien'};
 export const palaceTier=streak=>streak===20?'silver':streak===41?'gold':null;
 export function palaceChances(nature,low=false){
@@ -52,13 +70,18 @@ export function palaceChooseMove(engine,mon){
    engine.write(`${mon.name} hésite et n'attaque pas ! (Palais : ${PALACE_GROUP_LABELS[group]})`,{turn:engine.turn+1,kind:'palace'});
    return {actor:mon.id,type:'pass'};
   }
-  candidates=usable;
+  // Source Emerald bug: the fallback's multiple-move preference counts
+  // Attack and Defense, but never Support, when choosing a backup group.
+  const atk=usable.filter(key=>palaceMoveGroup(engine.data.moveData[key])==='attack');
+  const def=usable.filter(key=>palaceMoveGroup(engine.data.moveData[key])==='defense');
+  if((atk.length>=2)!==(def.length>=2))candidates=def.length>=2?def:atk;
+  else candidates=usable;
  }
  const move=choice(engine.rng,candidates),meta=engine.data.moveData[move];
  let chosen=target;
  if(meta?.target==='self')chosen=mon;
  else if(meta?.target==='all'||meta?.target==='enemies'||meta?.target==='random'||meta?.target==='enemyfield')chosen=target;
- else if(foes.length>1)chosen=choice(engine.rng,foes);
+ else if(foes.length>1)chosen=palaceTarget(foes,mon.nature,engine.rng);
  engine.write(`${mon.name} décide de ${meta?.name||move} (${PALACE_GROUP_LABELS[group]} · ${mon.nature}) !`,{turn:engine.turn+1,kind:'palace'});
  return {actor:mon.id,type:'move',move,target:chosen?.id};
 }
