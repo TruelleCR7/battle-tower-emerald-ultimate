@@ -4,7 +4,7 @@
 import {chooseTrainer,trainerTeam} from './frontier.mjs';
 import {effectiveStat,accuracyChance,baseDamage,weatherActive,STAT_KEYS,STAT_NAMES} from './battle-stats.mjs';
 import {normalizeSplitMode,splitCategory} from './split-mode.mjs';
-import {palaceChooseMove} from './palace.mjs';
+import {palaceChooseMove,palaceBrainSets} from './palace.mjs';
 import {chooseEmeraldMove} from './ai_emerald_scripted.mjs';
 export const TYPE_CHART = {
  NORMAL:{ROCK:.5,GHOST:0,STEEL:.5}, FIRE:{FIRE:.5,WATER:.5,GRASS:2,ICE:2,BUG:2,ROCK:.5,DRAGON:.5,STEEL:2},
@@ -108,9 +108,10 @@ export class TowerEngine {
    const ally=(config.partner||this.makeRandomSets(2,this.sets)).slice(0,2);
    ally.forEach(x=>this.player.party.push(makeMon(x,data,this.mode==='link'?'human2':'partner',x.level||50))); 
   }
-  const isBrain=this.mode==='single'&&[34,69].includes(this.streak);
-  this.trainer=isBrain?'Anabel · Meneuse de la Tour':this.pickTrainer();
-  let opponents=this.makeRandomSets(this.mode==='single'?3:4,[],isBrain);
+  const isBrain=this.facility==='tower'&&this.mode==='single'&&[34,69].includes(this.streak);
+  const isPalaceBrain=this.facility==='palace'&&this.mode==='single'&&[20,41].includes(this.streak);
+  this.trainer=isPalaceBrain?'Esteban · Meneur du Palais':isBrain?'Anabel · Meneuse de la Tour':this.pickTrainer();
+  let opponents=isPalaceBrain?palaceBrainSets(this.streak===20?'silver':'gold',data,this.level):this.makeRandomSets(this.mode==='single'?3:4,[],isBrain);
   opponents.forEach((x,i)=>this.opponent.party.push(makeMon(x,data,this.mode==='multi'||this.mode==='link'?(i<2?'cpu1':'cpu2'):'cpu',this.level)));
   this.initializeSide('player');this.initializeSide('opponent');
   this.write(`Défi n° ${this.streak+1} · ${this.trainer} !`);
