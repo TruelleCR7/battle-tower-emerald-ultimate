@@ -107,7 +107,7 @@ function roomView(){
   stage.querySelectorAll('[data-door]').forEach(el=>el.onclick=()=>pickDoor(+el.dataset.door));
  }else if(pike.phase==='event'){
   stage.innerHTML='<div class="pike-event-scene"><div class="pike-event-glyph">'+(eventIcon[pike.roomEvent]||'✦')+'</div><h3>ÉVÉNEMENT · '+esc(labels[pike.roomEvent])+'</h3><p>Un événement se déclenche dans cette salle.</p><button id="pike-event" class="btn primary">DÉCOUVRIR L’ÉVÉNEMENT</button></div>';
-  $('#pike-event').onclick=()=>{try{pikeResolveEvent(pike,save.party,Math.random,D.moveData);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
+  $('#pike-event').onclick=()=>{try{pikeResolveEvent(pike,save.party,Math.random,D.moveData,D);persist();render();}catch(e){$('#pike-message').textContent=e.message;}};
  }else if(pike.phase==='resolved'){
   stage.innerHTML='<div class="pike-event-scene"><div class="pike-event-glyph">'+(eventIcon[pike.roomEvent]||'✦')+'</div><h3>SALLE TRAVERSÉE</h3><p>'+esc(pike.eventMessage||'Combat remporté !')+'</p><button id="pike-continue" class="btn primary">PASSER À LA SALLE SUIVANTE ▶</button></div>';
   $('#pike-continue').onclick=()=>{pikeFinishRoom(pike,save.party);persist();render();};
