@@ -46,3 +46,10 @@ test('K.O. et retour au combat disposent de transitions dédiées',()=>{
  const cues=presentationPlan(events,{moveAnimations:true,animationSpeed:'normal',respectReducedMotion:true});
  assert.deepEqual(cues.map(c=>c.visual),['faint','switch']);
 });
+
+test('le cycle de Clonage produit trois animations ordonnées',()=>{
+ const events=[{kind:'substitute-create',actor:'a',amount:25},{kind:'substitute-hit',actor:'a',amount:12,remaining:13},{kind:'substitute-break',actor:'a'}];
+ const cues=presentationPlan(events,{moveAnimations:true,animationSpeed:'fast',respectReducedMotion:true});
+ assert.deepEqual(cues.map(c=>c.visual),['clone-create','clone-hit','clone-break']);
+ assert.deepEqual(cues.map(c=>c.index),[0,1,2]);
+});

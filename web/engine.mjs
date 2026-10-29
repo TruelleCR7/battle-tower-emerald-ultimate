@@ -402,7 +402,7 @@ export class TowerEngine {
    }
    let dmg=result.fixed?result.damage:Math.max(1,Math.floor(result.damage*(100-(Math.floor(this.rng()*65536)%16))/100));
    landed=true;
-   if(t.substitute>0){let sub=Math.min(dmg,t.substitute);t.substitute-=sub;this.write(`${t.name} : le clone encaisse ${sub} dégâts !`);if(t.substitute<=0)this.write('Le clone disparaît !');if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(sub/2)));continue;}
+   if(t.substitute>0){let sub=Math.min(dmg,t.substitute);t.substitute-=sub;this.write(`${t.name} : le clone encaisse ${sub} dégâts !`,{kind:'substitute-hit',actor:t.id,side:this.sideOf(t),amount:sub,remaining:t.substitute});if(t.substitute<=0)this.write('Le clone disparaît !',{kind:'substitute-break',actor:t.id,side:this.sideOf(t)});if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(sub/2)));continue;}
    if(t.item==='FOCUS_BAND'&&dmg>=t.hp&&this.rng()<.1)dmg=t.hp-1;
    const dealt=this.hpLoss(t,dmg,'attaque');if(dealt)(t.receivedDamage??={})[splitCategory(this,move)]={actor:m.id,amount:dealt};if(crit&&!result.fixed)this.write('Coup critique !');
    if(result.mult>=2)this.write('C’est super efficace !');if(result.mult>0&&result.mult<1)this.write('Ce n’est pas très efficace…');
@@ -443,7 +443,7 @@ export class TowerEngine {
    case 'light_screen':(this.lightScreens||={})[this.sideOf(m)]=5;break;
    case 'rain':this.weather='rain';this.weatherTurns=5;this.write('La pluie commence à tomber !');break;
    case 'spikes':{let side=this.sideOf(m)==='player'?'opponent':'player';this.hazards[side]=Math.min(3,this.hazards[side]+1);this.write('Des Picots se répandent chez l’adversaire.');break;}
-   case 'substitute':if(m.substitute>0||m.hp<=m.maxHp/4){this.write('Clonage échoue.');break;}m.hp-=Math.floor(m.maxHp/4);m.substitute=Math.floor(m.maxHp/4);this.write(`${m.name} place un clone !`);break;
+   case 'substitute':if(m.substitute>0||m.hp<=m.maxHp/4){this.write('Clonage échoue.');break;}const cost=Math.max(1,Math.floor(m.maxHp/4));m.hp-=cost;m.substitute=cost;this.write(`${m.name} place un clone !`,{kind:'substitute-create',actor:m.id,side:this.sideOf(m),amount:cost});break;
    case 'aroma':for(const p of this[this.sideOf(m)].party){p.status='';p.toxic=0;p.sleep=0;}this.write('Aromathérapi guérit le groupe !');break;
    case 'destiny':m.destiny=true;this.write(`${m.name} se prépare à entraîner son adversaire.`);break;
    case 'baton':{const r=this.bench(this.sideOf(m),m.owner);const next=r.find(p=>p.id===action.to)||(m.owner.startsWith('human')?null:r[0]);if(next)this.switchMon(m,next.id,true);else this.write('Relais échoue : aucun remplaçant choisi.');break;}
@@ -454,6 +454,7 @@ export class TowerEngine {
   if(move.type==='FIRE'&&t.ability==='FLASH_FIRE'){
    t.flashFire=true;this.write(`${t.name} absorbe l'attaque Feu grâce à Torche !`);return;
   }
+  if(m!==t&&this.sideOf(m)!==this.sideOf(t)&&t.substitute>0){this.write(`${t.name} est protégé par son clone !`);return;}
   if(this.statMove(m,t,move))return;
   if(effectiveness(move.type,t,this.data)===0&&['paralyze','toxic','poison'].includes(move.effect)){this.write('Cible immunisée.');return;}
   switch(move.effect){
