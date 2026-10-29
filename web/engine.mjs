@@ -303,7 +303,7 @@ export class TowerEngine {
   if((status==='burn'&&ty.includes('FIRE'))||(['poison','toxic'].includes(status)&&(ty.includes('POISON')||ty.includes('STEEL')))||
     (status==='paralyze'&&m.ability==='LIMBER')||(status==='sleep'&&['INSOMNIA','VITAL_SPIRIT'].includes(m.ability))||(status==='burn'&&m.ability==='WATER_VEIL')||(['poison','toxic'].includes(status)&&m.ability==='IMMUNITY')||(status==='freeze'&&(ty.includes('ICE')||m.ability==='MAGMA_ARMOR')))return false;
   m.status=status;if(status==='sleep')m.sleep=2+randInt(this.rng,3);if(status==='toxic')m.toxic=0;
-  this.write(`${m.name} subit ${statusTranslation[status]} !`);
+  this.write(`${m.name} subit ${statusTranslation[status]} !`,{kind:'status',actor:m.id,side:this.sideOf(m),status});
   // Gen III Synchro reflects an opponent-caused status before the curing berry activates.
   // Reflection deliberately has no source to prevent a second reflection loop.
   if(m.ability==='SYNCHRONIZE'&&source&&source!==m&&
