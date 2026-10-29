@@ -92,7 +92,13 @@ function setupBattle(door){
  battle=e;pikeActions={};save.combat=null;persist();
 }
 function playerCard(p){
- return '<div class="pike-mon"><b>'+esc(p.name)+'</b><span>'+p.hp+'/'+p.maxHp+' PV · '+esc(p.status||'OK')+'</span><small>'+esc(p.ability||'')+' · '+esc(p.item||'NONE')+'</small></div>';
+ const ko=p.hp<=0;
+ const condition=ko?'<span class="pike-ko-badge" aria-label="Pokémon K.O.">K.O.</span>':
+  p.status?'<span class="pike-condition">'+esc(p.status.toUpperCase())+'</span>':'<span class="pike-ok">OK</span>';
+ return '<div class="pike-mon '+(ko?'pike-mon-ko':'')+'"><b>'+esc(p.name)+'</b>'+
+  '<span class="pike-mon-vitals">'+Math.max(0,p.hp)+' / '+p.maxHp+' PV · '+condition+'</span>'+
+  '<div class="hp-meter"><span class="'+(p.hp/p.maxHp<.25?'low':p.hp/p.maxHp<.5?'medium':'')+'" style="width:'+Math.max(0,100*p.hp/p.maxHp)+'%"></span></div>'+
+  '<small>'+esc(p.ability||'')+' · '+esc(p.item||'NONE')+'</small></div>';
 }
 function roomView(){
  const pike=save.pike,stage=$('#pike-stage');
@@ -121,6 +127,7 @@ function pickDoor(index){
 }
 function combatView(){
  if(!battle)return;
+ repairPikeBattle(battle);
  const stage=$('#pike-stage'),snap=battle.snapshot(),foes=battle.active('opponent'),ours=battle.active('player');
  if(snap.status!=='active'){
   if(snap.status==='won'&&!save.pike.battleResolved){
@@ -130,7 +137,7 @@ function combatView(){
    if(save.pike.roomEvent==='hard_trainer')save.party.forEach(p=>{p.hp=p.maxHp;p.status='';p.sleep=0;p.toxic=0;p.pp=Object.fromEntries(Object.entries(p.pp).map(([k,v])=>[k,D.moveData[k]?.pp??v]));});
    battle=null;save.combat=null;persist();render();return;
   }
-  if(snap.status==='lost'){
+  if(snap.status==='lost'||(!ours.length&&!battle.player.party.some(p=>p.hp>0))){
    save.pike.phase='lost';save.party=structuredClone(battle.player.party);battle=null;save.combat=null;persist();render();return;
   }
  }
@@ -193,7 +200,7 @@ function render(){
  if(!save)return;
  const pike=save.pike;
  $('#pike-progress').innerHTML='<strong>PASSAGE '+pike.pass+' · PORTE '+Math.min(7,pike.room+1)+'/7</strong><small>'+(pike.totalRooms*2)+' SALLES TRAVERSÉES · '+(pike.silver?'🥈 ARGENT ':'')+(pike.gold?'🥇 OR':'')+'</small>';
- $('#pike-party').innerHTML='<h3>TON ÉQUIPE · ENDURANCE</h3>'+(battle?.player.party||save.party).map(playerCard).join('');
+ $('#pike-party').innerHTML='<h3>TON ÉQUIPE · ENDURANCE</h3><div class="pike-party-list">'+(battle?.player.party||save.party).map(playerCard).join('')+'</div>';
  $('#pike-history').innerHTML=pike.history.slice().reverse().map(h=>'<p>Passage '+h.pass+' · salle '+h.room+' · porte '+(h.door+1)+' · '+esc(labels[h.event]||h.event)+'</p>').join('');
  if(pike.phase==='battle'&&battle)combatView();else roomView();
 }
