@@ -247,10 +247,10 @@ export class TowerEngine {
  switchMon(m,newid,carry=false){
   const side=this.sideOf(m), slot=this[side].active.indexOf(m.id), target=this.get(newid);
   if(!target||target.hp<=0||target.active||target.owner!==m.owner||slot<0)return this.write('Changement impossible.');
-  const transfer=carry?{stages:{...m.stages},...Object.fromEntries(['confused','focusEnergy','substitute','escapePrevention','cursed','seeded','lockedOnBy','perish','rooted','mudSport','waterSport'].map(k=>[k,m[k]??0]))}:null;
+  const transfer=carry?{stages:{...m.stages},...Object.fromEntries(['confused','focusEnergy','substitute','escapePrevention','cursed','seeded','seedSource','lockedOnBy','perish','rooted','mudSport','waterSport'].map(k=>[k,m[k]??0]))}:null;
   if(m.ability==='NATURAL_CURE'){m.status='';m.toxic=0;m.sleep=0;}
   m.charging=null;m.active=false;m.stages={atk:0,def:0,spa:0,spd:0,spe:0,acc:0,eva:0};m.choiceLock='';m.protectCount=0;m.seeded=false;m.substitute=0;
-  for(const key of ['confused','focusEnergy','substitute','escapePrevention','cursed','seeded','lockedOnBy','perish','rooted','mudSport','waterSport','foresight']){m[key]=0;target[key]=0;}
+  for(const key of ['confused','focusEnergy','substitute','escapePrevention','cursed','seeded','seedSource','lockedOnBy','perish','rooted','mudSport','waterSport','foresight']){m[key]=0;target[key]=0;}
   target.stages=Object.fromEntries(STAT_KEYS.map(k=>[k,0]));
   target.active=true;target.receivedDamage={};target.aiKnownMoves=[];target.aiKnownAbility='';target.enteredTurn=this.turn;this[side].active[slot]=newid;
   this.write(`${m.name} revient ! ${target.name} entre en jeu.`,{kind:'switch',actor:m.id,side:side,to:newid});
@@ -402,13 +402,13 @@ export class TowerEngine {
    }
    let dmg=result.fixed?result.damage:Math.max(1,Math.floor(result.damage*(100-(Math.floor(this.rng()*65536)%16))/100));
    landed=true;
-   if(t.substitute>0){let sub=Math.min(dmg,t.substitute);t.substitute-=sub;this.write(`${t.name} : le clone encaisse ${sub} dégâts !`);if(t.substitute<=0)this.write('Le clone disparaît !');continue;}
+   if(t.substitute>0){let sub=Math.min(dmg,t.substitute);t.substitute-=sub;this.write(`${t.name} : le clone encaisse ${sub} dégâts !`);if(t.substitute<=0)this.write('Le clone disparaît !');if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(sub/2)));continue;}
    if(t.item==='FOCUS_BAND'&&dmg>=t.hp&&this.rng()<.1)dmg=t.hp-1;
    const dealt=this.hpLoss(t,dmg,'attaque');if(dealt)(t.receivedDamage??={})[splitCategory(this,move)]={actor:m.id,amount:dealt};if(crit&&!result.fixed)this.write('Coup critique !');
    if(result.mult>=2)this.write('C’est super efficace !');if(result.mult>0&&result.mult<1)this.write('Ce n’est pas très efficace…');
-   if(move.effect==='drain')this.heal(m,dealt/2);
+   if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(dealt/2)));
    if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD')this.hpLoss(m,Math.max(1,Math.floor(dealt/3)),'contrecoup');
-   if(m.item==='SHELL_BELL'&&dealt)this.heal(m,dealt/8);
+   if(m.item==='SHELL_BELL'&&dealt&&m.hp>0)this.heal(m,dealt/8);
    this.afterHit(m,t,move);
    this.contactEffects(m,t,name,move);
    if(t.hp<=0&&t.destiny&&m.hp>0)this.hpLoss(m,m.hp,'Prélèvement Destin');
@@ -461,7 +461,13 @@ export class TowerEngine {
    case 'paralyze':this.inflict(t,'paralyze',m);break;
    case 'toxic':this.inflict(t,'toxic',m);break;
    case 'sleep':this.inflict(t,'sleep',m);break;
-   case 'seed':if(!this.data.species[t.species].types.includes('GRASS')){t.seeded=true;this.write(`${t.name} est vampigrainé.`);}break;
+   case 'seed':{
+    if(t.seeded||t.substitute>0||this.data.species[t.species].types.includes('GRASS')){this.write('Vampigraine échoue.');break;}
+    const side=this.sideOf(m),slot=this[side].active.indexOf(m.id);
+    if(slot<0)break;
+    t.seeded=true;t.seedSource={side,slot};
+    this.write(`${t.name} est vampigrainé.`);break;
+   }
    case 'whirlwind':{const r=this.bench(this.sideOf(t),t.owner);if(r.length)this.switchMon(t,r[randInt(this.rng,r.length)].id);break;}
    default:this.write('⚠ Effet non porté : '+move.name+' ('+move.originalEffect+').');
   }
@@ -492,6 +498,22 @@ export class TowerEngine {
   if(e==='ALL_STATS_UP_HIT')for(const stat of ['atk','def','spa','spd','spe'])this.modify(m,stat,1);
   if(e==='FLINCH_HIT'&&t.ability!=='INNER_FOCUS')t.flinched=true;
  }
+ // BattleScript_EffectAbsorb / BattleScript_LeechSeedTurnDrain (pokeemerald).
+ drainRecovery(receiver,source,amount){
+  if(receiver.hp<=0||amount<=0)return;
+  if(source.ability==='LIQUID_OOZE')this.hpLoss(receiver,amount,'Suintement');
+  else this.heal(receiver,amount);
+ }
+ leechSeedResidual(m){
+  if(!m.seeded||m.hp<=0)return;
+  // Emerald stores a battler position, not an individual Pokémon: a replacement
+  // in the same position receives healing. Legacy saves had only a boolean.
+  const source=m.seedSource||{side:this.sideOf(m)==='player'?'opponent':'player',slot:0};
+  const receiver=this.get(this[source.side]?.active[source.slot]);
+  if(!receiver||receiver.hp<=0)return;
+  const dealt=this.hpLoss(m,Math.max(1,Math.floor(m.maxHp/8)),'Vampigraine');
+  this.drainRecovery(receiver,m,dealt);
+ }
  endOfTurn(){
   for(const field of ['reflections','lightScreens','mist','safeguards'])for(const side of ['player','opponent'])if(this[field]?.[side]>0)this[field][side]--;
   for(const m of [...this.active('player'),...this.active('opponent')]){
@@ -504,9 +526,9 @@ export class TowerEngine {
    }
    // Speed Boost does not activate on the turn a Pokémon switches in.
    if(m.ability==='SPEED_BOOST'&&m.enteredTurn!==this.turn)this.modify(m,'spe',1);
+   this.leechSeedResidual(m);
    if(m.status==='burn'||m.status==='poison')this.hpLoss(m,m.maxHp/8,m.status);
    if(m.status==='toxic'){m.toxic++;this.hpLoss(m,m.maxHp*m.toxic/16,'toxic');}
-   if(m.seeded){const enemySide=this.sideOf(m)==='player'?'opponent':'player',caster=this.active(enemySide)[0];let val=this.hpLoss(m,m.maxHp/8,'Vampigraine');if(caster&&caster.hp>0)this.heal(caster,val);}
    if(weatherActive(this)&&this.weather==='sand'&&!this.data.species[m.species].types.some(t=>['ROCK','GROUND','STEEL'].includes(t)))this.hpLoss(m,m.maxHp/16,'tempête de sable');
    if(weatherActive(this)&&this.weather==='hail'&&!this.data.species[m.species].types.includes('ICE'))this.hpLoss(m,m.maxHp/16,'grêle');
    if(m.cursed&&m.hp>0)this.hpLoss(m,Math.max(1,Math.floor(m.maxHp/4)),'Malédiction');
