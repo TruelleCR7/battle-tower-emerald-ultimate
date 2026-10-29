@@ -25,7 +25,7 @@ test('Static, Poison Point and Flame Body activate on contact only',()=>{
   assert.equal(p.status,'',ability);
  }
 });
-test('Contact chance of thirty percent respects deterministic rolls',()=>{
+test('Emerald contact chance of one-third respects deterministic rolls',()=>{
  const {e,p,o}=battle('STATIC',()=>.5);
  e.contactEffects(p,o,'TACKLE',{makesContact:true});assert.equal(p.status,'');
  e.rng=()=>.2;e.contactEffects(p,o,'TACKLE',{makesContact:true});assert.equal(p.status,'paralyze');
@@ -103,4 +103,15 @@ test('Two Synchronize holders do not reflect recursively',()=>{
  assert.equal(o.status,'burn');
  assert.equal(p.status,'burn');
  assert.equal(e.log.filter(x=>x.text.includes('Synchro')).length,1);
+});
+
+test('Gen III contact abilities activate at 32% but not 34%',()=>{
+ for(const [ability,status] of [['STATIC','paralyze'],['POISON_POINT','poison'],['FLAME_BODY','burn']]){
+  const {e,p,o}=battle(ability,()=>.32);
+  e.contactEffects(p,o,'TACKLE',{makesContact:true});
+  assert.equal(p.status,status,ability+' at 32%');
+  p.status='';e.rng=()=>.34;
+  e.contactEffects(p,o,'TACKLE',{makesContact:true});
+  assert.equal(p.status,'',ability+' at 34%');
+ }
 });
