@@ -2,6 +2,7 @@
 // The Pike supplies its own persistent expedition state, not a second battle renderer.
 import {TYPES,typeName,percent,targetPlan,groupedLog} from './battle-ui.mjs';
 import {renderBattleArena,battleSprite} from './battle-view.mjs';
+import {splitCategory,moveDetails} from './split-mode.mjs';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon=(p,data)=>'<img class="menu-icon" src="https://raw.githubusercontent.com/pret/pokeemerald/731ad5bfd6e6f265508d0efcca0ba42f9dcf5881/graphics/pokemon/'+(p.species==='UNOWN'?'unown/a':p.species.toLowerCase())+'/icon.png" alt="" loading="lazy">';
 const badges=(mon,data)=>(data.species[mon.species]?.types||[]).map(t=>'<span class="type-badge" style="background:'+(TYPES[t]?.[1]||'#ccc')+'">'+esc(typeName(t))+'</span>').join('');
@@ -42,7 +43,7 @@ export function pikeMoveControls(engine,actions){
   html+='<div class="moves">'+usable.map(key=>{
    const m=engine.data.moveData[key]||{name:key,pp:0,type:'NORMAL',category:'physical'};
    const selected=choice?.type==='move'&&choice.move===key;
-   return '<button type="button" class="move '+(selected?'sel':'')+'" style="--move-color:'+(TYPES[m.type]?.[1]||'#ddd')+'" aria-pressed="'+selected+'" data-actor="'+esc(mon.id)+'" data-move="'+esc(key)+'"><b>'+(selected?'✓ ':'')+esc(m.name||key)+'</b><small>'+esc(typeName(m.type))+' · '+(m.category==='physical'?'Physique':m.category==='special'?'Spéciale':'Statut')+'<br>'+(key==='STRUGGLE'?'—':mon.pp[key]+' / '+m.pp)+' PP</small></button>';
+   return '<button type="button" class="move '+(selected?'sel':'')+'" style="--move-color:'+(TYPES[m.type]?.[1]||'#ddd')+'" aria-pressed="'+selected+'" data-actor="'+esc(mon.id)+'" data-move="'+esc(key)+'"><b>'+(selected?'✓ ':'')+esc(m.name||key)+'</b><small>'+esc(typeName(m.type))+' · '+(splitCategory(engine,m)==='physical'?'Physique':splitCategory(engine,m)==='special'?'Spéciale':'Statut')+'<br>Puiss. '+moveDetails(m,engine.splitMode).power+' · Préc. '+moveDetails(m,engine.splitMode).accuracy+'<br>'+(key==='STRUGGLE'?'—':mon.pp[key]+' / '+m.pp)+' PP</small></button>';
   }).join('')+'</div>';
   if(choice?.type==='move'){
    const plan=targetPlan(engine,mon.id,choice.move);
