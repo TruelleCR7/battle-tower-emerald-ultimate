@@ -115,7 +115,7 @@ export class TowerEngine {
   opponents.forEach((x,i)=>this.opponent.party.push(makeMon(x,data,this.mode==='multi'||this.mode==='link'?(i<2?'cpu1':'cpu2'):'cpu',this.level)));
   this.initializeSide('player');this.initializeSide('opponent');
   this.write(`Défi n° ${this.streak+1} · ${this.trainer} !`);
-  this.write('Catégories physique/spéciale définies pour chaque attaque (split Gen IV).');
+  this.write(this.splitMode==='type'?'Catégories physique/spéciale selon le type (règles Émeraude).':'Catégories physique/spéciale selon chaque capacité (split moderne).');
   if(!config.deferEntryEffects)this.entryEffects([...this.opponent.active,...this.player.active].map(id=>this.get(id)).filter(Boolean));
  }
 
@@ -197,7 +197,7 @@ export class TowerEngine {
 
  aiAction(m){
   if(this.facility==='palace')return palaceChooseMove(this,m);
-  if(m.moves.every(k=>m.pp[k]<=0||(m.choiceLock&&m.choiceLock!==k)||m.disabled===k||(m.encored&&m.encored!==k)||(m.taunted&&this.data.moveData[k].category==='status')))return {actor:m.id,type:'move',move:'STRUGGLE',target:this.active(this.sideOf(m)==='player'?'opponent':'player')[0]?.id};
+  if(m.moves.every(k=>m.pp[k]<=0||(m.choiceLock&&m.choiceLock!==k)||m.disabled===k||(m.encored&&m.encored!==k)||(m.taunted&&splitCategory(this,this.data.moveData[k])==='status')))return {actor:m.id,type:'move',move:'STRUGGLE',target:this.active(this.sideOf(m)==='player'?'opponent':'player')[0]?.id};
   if(this.data.aiScript?.blocks?.AI_CheckBadMove){const action=chooseEmeraldMove(this,m);if(this.data.moveData[action.move]?.effect==='baton')action.to=this.bench(this.sideOf(m),m.owner)[0]?.id;return action;}
   throw new Error('IA source indisponible : aucun remplacement heuristique autorisé.');
  }
@@ -212,7 +212,7 @@ export class TowerEngine {
    if(a.type==='switch'){const to=this.get(a.to);if(!to||to.active||to.hp<=0||to.owner!==m.owner||this.sideOf(to)!==this.sideOf(m)||replacements.has(a.to))throw Error('Remplacement impossible ou déjà choisi.');replacements.add(a.to);}
    else if(a.type==='move'){if(m.charging)continue;const move=this.data.moveData[a.move];if(move?.effect==='baton'&&!this.bench(this.sideOf(m),m.owner).some(p=>p.id===a.to))throw Error('Choisis le destinataire de Relais.');if(!move||(!m.moves.includes(a.move)&&a.move!=='STRUGGLE')||(a.move!=='STRUGGLE'&&(m.pp[a.move]<=0||(m.choiceLock&&m.choiceLock!==a.move))))throw Error('Capacité indisponible.');
     if(a.move==='STRUGGLE'&&m.moves.some(k=>m.pp[k]>0&&(!m.choiceLock||m.choiceLock===k)))throw Error('Lutte indisponible tant qu’une capacité est utilisable.');
-    if(move.target==='enemy'&&!['COUNTER','MIRROR_COAT'].includes(move.originalEffect)){const t=this.get(a.target);if(!t||!t.active||t.hp<=0||t.id===m.id)throw Error('Choisis une cible active valide.');}
+    if(move.target==='enemy'&&!['COUNTER','MIRROR_COAT'].includes(move.originalEffect)){const t=this.get(a.target);if(!t||!t.active||t.hp<=0||this.sideOf(t)===this.sideOf(m))throw Error('Choisis un adversaire actif comme cible.');}
    }else throw Error('Action inconnue.');
   }
  }
