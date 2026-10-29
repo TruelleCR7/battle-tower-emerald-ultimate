@@ -52,3 +52,28 @@
 .pike-log-panel .pike-combatlog{background:#fffdf4}
 .pike-combatlog small{font-size:.7rem;color:#79877a;margin-right:7px}
 @media(max-width:700px){.pike-scene{padding:14px 6px}.pike-scene .pike-doors{gap:3px}.pike-door-art{width:100%}.pike-scene-banner{font-size:.62rem}.pike-scene .pike-door b{font-size:.64rem;padding:4px}.pike-scene .pike-door small{font-size:.64rem}.pike-battle-shell .pike-commands{grid-template-columns:1fr}.pike-battle-top{font-size:.68rem}.pike-arena{padding:12px 5px;min-height:340px}.pike-battle-enemy{margin-left:9%}.pike-battle-player{margin-right:9%}.pike-battler-sprite{width:94px;height:80px}.pike-sprite{width:94px;height:80px}.pike-ally .pike-sprite,.pike-ally .pike-battler-sprite{width:105px;height:100px}.pike-battler-details{padding:5px;font-size:.68rem}.pike-battler-details small{font-size:.62rem}}
+
+/* Shared Frontier battlefield presentation, with the Pike's path-only artwork above it. */
+#pike-stage .battle-title{margin:18px 0 13px;color:#263d3d}
+#pike-stage .battle-title h2{color:#283e43}
+#pike-stage .pixel-frame{width:100%}
+#pike-stage .arena{background:repeating-linear-gradient(0deg,#d9e3d2 0 4px,#dce7d7 4px 8px);min-height:360px}
+#pike-stage .controls{background:#e2e7d9;color:#1b3540}
+#pike-stage .dialogue{background:#f4f2db;color:#25393e;min-height:45px;padding:12px;border-top:3px solid #6a8077}
+#pike-stage .battle-bottom{margin-top:12px}
+#pike-stage .logs{background:#192a34;color:#e4eadb}
+#pike-stage .target-card .menu-icon{width:48px;height:42px;image-rendering:pixelated}
+#pike-stage .bench-card .menu-icon{width:43px;height:37px;image-rendering:pixelated}
+.pike-stats{display:block;margin:12px 0 24px}
+.pike-stats>h3{margin:0 0 12px;font-size:13px;color:#21474c}
+.pike-party-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pike-mon{margin:0;border:3px solid #92aa9a;background:#fafbf0;box-shadow:3px 3px #b9c9bb}
+.pike-mon-ko{border-color:#b53c45;background:#fff0ec;box-shadow:inset 0 0 0 2px #f0b6b4,3px 3px #a85558}
+.pike-mon-vitals{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.pike-ko-badge{display:inline-flex;padding:3px 8px;border:2px solid #9d1d2e;background:#c33342;color:#fff;font-weight:900;font-size:12px;letter-spacing:.07em}
+.pike-mon-ko>b{color:#932739}
+.pike-ok{color:#397650;font-weight:900}
+.pike-condition{padding:2px 5px;background:#efd7a2;border:1px solid #92743f;font-weight:900}
+#pike-stage .forced-replacement{padding:14px}
+#pike-stage .bench-card{font-size:12px}
+@media(max-width:650px){.pike-party-list{grid-template-columns:1fr}.pike-stats{margin-bottom:16px}}
