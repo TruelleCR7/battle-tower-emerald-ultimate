@@ -4,6 +4,7 @@
 import {chooseTrainer,trainerTeam} from './frontier.mjs';
 import {effectiveStat,accuracyChance,baseDamage,weatherActive,STAT_KEYS,STAT_NAMES} from './battle-stats.mjs';
 import {normalizeSplitMode,splitCategory} from './split-mode.mjs';
+import {palaceChooseMove} from './palace.mjs';
 import {chooseEmeraldMove} from './ai_emerald_scripted.mjs';
 export const TYPE_CHART = {
  NORMAL:{ROCK:.5,GHOST:0,STEEL:.5}, FIRE:{FIRE:.5,WATER:.5,GRASS:2,ICE:2,BUG:2,ROCK:.5,DRAGON:.5,STEEL:2},
@@ -96,12 +97,12 @@ function canHitChargingTarget(moveKey,target){
 const statusTranslation={burn:'brûlure',paralyze:'paralysie',poison:'poison',toxic:'poison grave',freeze:'gel',sleep:'sommeil'};
 export class TowerEngine {
  constructor(data,config={}) {
-  this.data=data;this.splitMode=normalizeSplitMode(config.splitMode);this.mode=config.mode||'single';this.levelMode=config.levelMode||'50';this.level=this.levelMode==='50'?50:Math.max(60,...(config.team||[]).map(m=>m.level||50));
+  this.data=data;this.facility=config.facility||'tower';this.splitMode=normalizeSplitMode(config.splitMode);this.mode=config.mode||'single';this.levelMode=config.levelMode||'50';this.level=this.levelMode==='50'?50:Math.max(60,...(config.team||[]).map(m=>m.level||50));
   this.rngState=(config.seed??(Math.random()*0x100000000))>>>0;this.rng=config.rng||(()=>this.random());this.trainerHistory=config.trainerHistory||[];this.streak=config.streak||0;this.round=(this.streak%7)+1;this.series=Math.floor(this.streak/7)+1;
   this.log=[];this.turn=0;this.status='active';this.weather='';this.weatherTurns=0;this.hazards={player:0,opponent:0};
   this.player={party:[],active:[]};this.opponent={party:[],active:[]};this.trainer='Dresseur de la Tour';this.score=0;
   if(validateTeam(config.team,this.mode,this.levelMode,data).length)throw Error(validateTeam(config.team,this.mode,this.levelMode,data).join(' '));
-  this.sets=deep(config.team);this.originalConfig={mode:this.mode,levelMode:this.levelMode,team:this.sets,streak:this.streak,splitMode:this.splitMode};
+  this.sets=deep(config.team);this.originalConfig={mode:this.mode,levelMode:this.levelMode,team:this.sets,streak:this.streak,splitMode:this.splitMode,facility:this.facility};
   this.player.party=this.sets.map(x=>makeMon(x,data,'human',x.level||50));
   if(this.mode==='multi'||this.mode==='link'){
    const ally=(config.partner||this.makeRandomSets(2,this.sets)).slice(0,2);
@@ -194,6 +195,7 @@ export class TowerEngine {
  }
 
  aiAction(m){
+  if(this.facility==='palace')return palaceChooseMove(this,m);
   if(m.moves.every(k=>m.pp[k]<=0||(m.choiceLock&&m.choiceLock!==k)||m.disabled===k||(m.encored&&m.encored!==k)||(m.taunted&&this.data.moveData[k].category==='status')))return {actor:m.id,type:'move',move:'STRUGGLE',target:this.active(this.sideOf(m)==='player'?'opponent':'player')[0]?.id};
   if(this.data.aiScript?.blocks?.AI_CheckBadMove){const action=chooseEmeraldMove(this,m);if(this.data.moveData[action.move]?.effect==='baton')action.to=this.bench(this.sideOf(m),m.owner)[0]?.id;return action;}
   throw new Error('IA source indisponible : aucun remplacement heuristique autorisé.');
@@ -205,6 +207,7 @@ export class TowerEngine {
   for(const id of required)if(!choices.find(a=>a.actor===id))throw Error('Sélectionne une action pour chaque Pokémon contrôlé.');
   if(choices.length!==required.length||new Set(choices.map(a=>a.actor)).size!==choices.length)throw Error('Une seule action par Pokémon contrôlé.');
   const replacements=new Set();for(const a of choices){const m=this.get(a.actor);if(!required.includes(a.actor))throw Error('Pokémon non contrôlable.');
+   if(a.type==='palace'&&this.facility==='palace')continue;
    if(a.type==='switch'){const to=this.get(a.to);if(!to||to.active||to.hp<=0||to.owner!==m.owner||this.sideOf(to)!==this.sideOf(m)||replacements.has(a.to))throw Error('Remplacement impossible ou déjà choisi.');replacements.add(a.to);}
    else if(a.type==='move'){if(m.charging)continue;const move=this.data.moveData[a.move];if(move?.effect==='baton'&&!this.bench(this.sideOf(m),m.owner).some(p=>p.id===a.to))throw Error('Choisis le destinataire de Relais.');if(!move||(!m.moves.includes(a.move)&&a.move!=='STRUGGLE')||(a.move!=='STRUGGLE'&&(m.pp[a.move]<=0||(m.choiceLock&&m.choiceLock!==a.move))))throw Error('Capacité indisponible.');
     if(a.move==='STRUGGLE'&&m.moves.some(k=>m.pp[k]>0&&(!m.choiceLock||m.choiceLock===k)))throw Error('Lutte indisponible tant qu’une capacité est utilisable.');
@@ -217,7 +220,7 @@ export class TowerEngine {
   if(this.pendingReplacements?.length)throw Error('Choisis le Pokémon à envoyer après le K.O.');
   this.pendingDefaults(playerChoices);
   const sides=[...this.active('player'),...this.active('opponent')];
-  const actions=[];for(const m of sides){let a=m.charging?{actor:m.id,type:'move',move:m.charging.move,target:m.charging.target}:playerChoices.find(x=>x.actor===m.id);if(!a)a=this.aiAction(m);if(a)actions.push(deep(a));}
+  const actions=[];for(const m of sides){let a=m.charging?{actor:m.id,type:'move',move:m.charging.move,target:m.charging.target}:playerChoices.find(x=>x.actor===m.id);if(this.facility==='palace'&&(!a||a.type==='palace'))a=palaceChooseMove(this,m);else if(!a)a=this.aiAction(m);if(a)actions.push(deep(a));}
   for(const m of sides)m.receivedDamage={};
   this.turn++;this.write('— Tour '+this.turn+' —');
   // Process action by priority & speed, with a small random tie break.
@@ -549,7 +552,7 @@ export class TowerEngine {
   if(this.countAlive('opponent')===0){this.status='won';this.write('Victoire ! Le combat est remporté.');this.score=1;}
   else if(this.countAlive('player')===0){this.status='lost';this.write('Défaite. La série s’arrête.');this.score=0;}
  }
- snapshot(){return {splitMode:normalizeSplitMode(this.splitMode),mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
+ snapshot(){return {facility:this.facility||'tower',splitMode:normalizeSplitMode(this.splitMode),mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
    weather:this.weather,trainer:this.trainer,log:this.log.slice(0,75),player:deep(this.player),opponent:deep(this.opponent),hazards:deep(this.hazards)};}
  exportState(){let snap=this.snapshot();delete snap.log;return snap;}
 }
