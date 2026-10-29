@@ -62,3 +62,31 @@ export function palaceChooseMove(engine,mon){
  engine.write(`${mon.name} décide de ${meta?.name||move} (${PALACE_GROUP_LABELS[group]} · ${mon.nature}) !`);
  return {actor:mon.id,type:'move',move,target:chosen?.id};
 }
+
+// Palace Maven Spenser / Esteban. Battles 21 and 42, Singles only.
+// Team composition and moves follow Pokebip's Emerald Battle Palace guide.
+const BRAIN_SETS={
+ silver:[
+  ['CROBAT','BRIGHT_POWDER',['FLY','CONFUSE_RAY','TOXIC','DOUBLE_TEAM']],
+  ['SLAKING','SCOPE_LENS',['BRICK_BREAK','SHADOW_BALL','EARTHQUAKE','SWAGGER']],
+  ['LAPRAS','QUICK_CLAW',['HORN_DRILL','ICE_BEAM','CONFUSE_RAY','PROTECT']]],
+ gold:[
+  ['ARCANINE','WHITE_HERB',['OVERHEAT','EXTREME_SPEED','ROAR','PROTECT']],
+  ['SLAKING','SCOPE_LENS',['HYPER_BEAM','SHADOW_BALL','EARTHQUAKE','YAWN']],
+  ['SUICUNE','KINGS_ROCK',['SURF','BITE','BLIZZARD','CALM_MIND']]]
+};
+export function palaceBrainSets(tier,data,level=50){
+ if(!BRAIN_SETS[tier])throw Error('Symbole de Palais inconnu.');
+ return BRAIN_SETS[tier].map(([species,item,moves])=>{
+  const info=data.species?.[species];
+  if(!info)throw Error('Espèce absente du catalogue du Palais : '+species);
+  // A missing move in the current port is replaced by a catalogued move
+  // rather than generating a broken combat.
+  const known=moves.filter(k=>data.moveData[k]);
+  const fallback=(data.sets?.[species]?.moves||data.learnsets?.[species]||[]).filter(k=>data.moveData[k]);
+  const final=[...new Set([...known,...fallback])].slice(0,4);
+  if(!final.length)throw Error('Aucune capacité disponible pour '+species);
+  return {species,item,nature:'HARDY',ability:info.abilities?.[0]||'NONE',
+   moves:final,level,evs:[0,0,0,0,0,0],ivs:[31,31,31,31,31,31]};
+ });
+}
