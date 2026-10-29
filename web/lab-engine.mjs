@@ -1,7 +1,7 @@
 // Isolated two-sided manual battle harness. Does not read or write player saves.
 import {TowerEngine,makeMon} from './engine.mjs';
 const clone=o=>structuredClone(o);
-export function createLabBattle(data,{mode='single',player,opponent,seed=12345,deferEntryEffects=false}){
+export function createLabBattle(data,{mode='single',player,opponent,seed=12345,splitMode='move',deferEntryEffects=false}){
  if(!['single','double'].includes(mode))throw Error('Format du laboratoire inconnu.');
  const minimum=mode==='double'?2:1;
  for(const [side,team] of [['player',player],['opponent',opponent]]){
@@ -12,9 +12,9 @@ export function createLabBattle(data,{mode='single',player,opponent,seed=12345,d
   }
  }
  const battle=Object.create(TowerEngine.prototype);
- Object.assign(battle,{data,mode,levelMode:'open',level:50,rngState:seed>>>0,trainerHistory:[],streak:0,round:1,series:1,
+ Object.assign(battle,{data,mode,splitMode,levelMode:'open',level:50,rngState:seed>>>0,trainerHistory:[],streak:0,round:1,series:1,
   log:[],turn:0,status:'active',weather:'',weatherTurns:0,hazards:{player:0,opponent:0},score:0,trainer:'Laboratoire · adversaire manuel',
-  sets:clone(player),originalConfig:{mode,levelMode:'open',team:clone(player),streak:0},pendingReplacements:[],actions:{},
+  sets:clone(player),originalConfig:{mode,splitMode,levelMode:'open',team:clone(player),streak:0},pendingReplacements:[],actions:{},
   player:{party:player.map(s=>makeMon(s,data,'human',s.level)),active:[]},
   opponent:{party:opponent.map(s=>makeMon(s,data,'human2',s.level)),active:[]}});
  battle.rng=()=>battle.random();
