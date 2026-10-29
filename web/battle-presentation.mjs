@@ -4,7 +4,7 @@ export const MOVE_VISUALS={THUNDERBOLT:'electric',THUNDER:'electric',THUNDER_PUN
 export function presentationPlan(events,prefs,reduced=false){
  if(!prefs.moveAnimations||(prefs.respectReducedMotion&&reduced))return [];
  const duration=prefs.animationSpeed==='fast'?160:380;
- return events.flatMap((e,index)=>e.kind==='move'?[{actor:e.actor,target:e.target,visual:MOVE_VISUALS[e.move]||'impact',duration,index}]:e.kind==='damage'?[{target:e.actor,visual:'impact',duration:Math.round(duration*.65),index}]:e.kind==='stat'?[{target:e.actor,visual:e.to>e.from?'raise':'lower',duration,index}]:e.kind==='heal'?[{target:e.actor,visual:'heal',duration,index}]:e.kind==='status'?[{target:e.actor,visual:e.status==='burn'?'fire':e.status==='freeze'?'ice':e.status==='paralyze'?'electric':e.status==='sleep'?'sleep':'poison',duration,index}]:e.kind==='switch'?[{target:e.to,actor:e.actor,visual:'switch',duration,index}]:[]);
+ return events.flatMap((e,index)=>e.kind==='move'?[{actor:e.actor,target:e.target,visual:MOVE_VISUALS[e.move]||'impact',duration,index}]:e.kind==='damage'?[{target:e.actor,visual:'impact',duration:Math.round(duration*.65),index}]:e.kind==='stat'?[{target:e.actor,visual:e.to>e.from?'raise':'lower',duration,index}]:e.kind==='heal'?[{target:e.actor,visual:'heal',duration,index}]:e.kind==='status'?[{target:e.actor,visual:e.status==='burn'?'fire':e.status==='freeze'?'ice':e.status==='paralyze'?'electric':e.status==='sleep'?'sleep':e.status==='confusion'?'confusion':'poison',duration,index}]:e.kind==='switch'?[{target:e.to,actor:e.actor,visual:'switch',duration,index}]:[]);
 }
 export class BattlePresenter{
  constructor(root){this.root=root;this.generation=0;this.running=[];}
@@ -30,8 +30,15 @@ export class BattlePresenter{
    else if(cue.visual==='switch')frames=[{opacity:.25,transform:'scale(.8)'},{opacity:1,transform:'scale(1)'}];
    else if(cue.visual==='impact')frames=[{transform:'translateX(0)',filter:'brightness(1)'},{transform:'translateX(-5px)',filter:'brightness(1.7)',offset:.25},{transform:'translateX(5px)',filter:'brightness(1.5)',offset:.5},{transform:'translateX(-2px)',filter:'brightness(1.3)',offset:.75},{transform:'translateX(0)',filter:'brightness(1)'}];
    else if(cue.visual==='ground')frames=[{transform:'translate(0,0)'},{transform:'translate(-6px,3px)'},{transform:'translate(6px,-3px)'},{transform:'translate(-4px,2px)'},{transform:'translate(0,0)'}];
-   else{const colors={electric:'#ffed57',ice:'#92e9ff',fire:'#ff8044',water:'#429aff',ghost:'#b590eb',psychic:'#ff80cd',raise:'#75df99',lower:'#ff9b7c',heal:'#86f1bd',poison:'#bd78d8',sleep:'#94a8d8'};
+   else{const colors={electric:'#ffed57',ice:'#92e9ff',fire:'#ff8044',water:'#429aff',ghost:'#b590eb',psychic:'#ff80cd',raise:'#75df99',lower:'#ff9b7c',heal:'#86f1bd',poison:'#bd78d8',sleep:'#94a8d8',confusion:'#f5c86c'};
     frames=[{filter:'brightness(1)',boxShadow:'inset 0 0 0 0 transparent'},{filter:'brightness(1.5)',boxShadow:`inset 0 0 0 7px ${colors[cue.visual]}`,offset:.45},{filter:'brightness(1)',boxShadow:'inset 0 0 0 0 transparent'}];}
+   if(['sleep','ice','poison','electric','fire','confusion'].includes(cue.visual)&&events[cue.index]?.kind==='status'){
+    const sprite=target.querySelector('.combat-mon')||target;
+    const badge=document.createElement('span');badge.className='battle-status-vfx vfx-'+cue.visual;
+    badge.textContent=({sleep:'Z z z',ice:'❄ ❄',poison:'☣',electric:'ϟ ϟ',fire:'♨',confusion:'? ?'})[cue.visual];
+    badge.setAttribute('aria-hidden','true');sprite.appendChild(badge);
+    try{if(badge.animate){const fx=badge.animate([{opacity:0,transform:'translateY(8px) scale(.7)'},{opacity:1,transform:'translateY(-10px) scale(1.1)',offset:.55},{opacity:0,transform:'translateY(-30px) scale(1.2)'}],{duration:cue.duration*1.7,easing:'ease-out'});this.running.push(fx);await fx.finished.catch(()=>{});}}finally{badge.remove();}
+   }
    if(!element.animate)continue;const animation=element.animate(frames,{duration:cue.duration,easing:'steps(5,end)'});this.running.push(animation);await animation.finished.catch(()=>{});
   }
   entries?.forEach(el=>el.classList.remove('event-unrevealed'));
