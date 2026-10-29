@@ -247,7 +247,7 @@ function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state
   if(switchPrompt){const from=engine.get(switchPrompt.actor),to=engine.get(switchPrompt.to);html+='<div class="switch-confirm"><p>Remplacer '+escapeHTML(from.name)+' par '+escapeHTML(to.name)+' ?</p><button id="confirm-switch">CONFIRMER</button><button id="cancel-switch">ANNULER</button></div>';}
   html+='<div class="combat-actions"><button id="palace-turn" class="btn primary" '+(switchPrompt?'disabled':'')+'>LAISSER LES POKÉMON AGIR ▶</button></div>';
   $('#battle-controls').innerHTML=html;
-  $('[data-switch-actor]').forEach(b=>b.onclick=()=>{switchPrompt={actor:b.dataset.switchActor,to:b.dataset.switchTo};renderBattle();});
+  $$('[data-switch-actor]').forEach(b=>b.onclick=()=>{switchPrompt={actor:b.dataset.switchActor,to:b.dataset.switchTo};renderBattle();});
   if($('#confirm-switch')){$('#confirm-switch').onclick=()=>{const {actor,to}=switchPrompt;actions[actor]={actor,type:'switch',to};switchPrompt=null;saveBattleSession();renderBattle();};$('#cancel-switch').onclick=()=>{switchPrompt=null;renderBattle();};}
   $('#palace-turn').onclick=async()=>{if(storageFailed||presenting)return;$('#palace-turn').disabled=true;
    try{await saveQueue;const backup=deepCopy(state.runs.find(r=>r.id===activeRun));
