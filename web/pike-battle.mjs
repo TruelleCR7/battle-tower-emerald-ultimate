@@ -23,7 +23,7 @@ export function resetPikePartyForBattle(data,sets,party){
   return clean;
  });
 }
-export function createPikeBattle(data,{sets,party,opponents,mode='single',levelMode='50',seed=12345,trainer='Dresseur du Reptile'}){
+export function createPikeBattle(data,{sets,party,opponents,mode='single',levelMode='50',splitMode='move',seed=12345,trainer='Dresseur du Reptile'}){
  if(!['single','double'].includes(mode))throw Error('Format du Reptile invalide.');
  if(!Array.isArray(party)||party.length!==3||!Array.isArray(opponents)||!opponents.length)throw Error('Équipe du Reptile invalide.');
  const living=party.filter(p=>p.hp>0);
@@ -34,10 +34,10 @@ export function createPikeBattle(data,{sets,party,opponents,mode='single',levelM
  const playerParty=resetPikePartyForBattle(data,sets,party);
  enemyTeam.forEach(p=>p.active=false);
  const battle=Object.create(TowerEngine.prototype);
- Object.assign(battle,{data,mode:battleMode,levelMode,level:levelMode==='50'?50:Math.max(60,...sets.map(p=>p.level||60)),
+ Object.assign(battle,{data,mode:battleMode,levelMode,splitMode,level:levelMode==='50'?50:Math.max(60,...sets.map(p=>p.level||60)),
   rngState:seed>>>0,trainerHistory:[],streak:0,round:1,series:1,log:[],turn:0,status:'active',
   weather:'',weatherTurns:0,hazards:{player:0,opponent:0},score:0,trainer,
-  sets:clone(sets),originalConfig:{mode:battleMode,levelMode,team:clone(sets),streak:0},
+  sets:clone(sets),originalConfig:{mode:battleMode,levelMode,splitMode,team:clone(sets),streak:0},
   pendingReplacements:[],actions:{},player:{party:playerParty,active:[]},opponent:{party:enemyTeam,active:[]}});
  battle.rng=()=>battle.random();
  const starting=playerParty.filter(p=>p.hp>0).slice(0,battleMode==='double'?2:1);
