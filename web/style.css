@@ -128,3 +128,15 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 
 /* Dedicated combat laboratory link in the main game navigation */
 .steps .lab-nav-link{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border:2px solid #739588;background:#214b3b;color:#f2f8ec;font-weight:900;text-decoration:none;white-space:nowrap}.steps .lab-nav-link:hover{background:#367659}
+
+/* Battle Palace — read-only nature-driven choices, same shared battle arena. */
+.palace-note{padding:16px 18px;margin-bottom:15px;border:3px solid #ad9b73;background:linear-gradient(135deg,#e8dfc7,#f6f0db);box-shadow:4px 4px 0 #454354;color:#36453a}
+.palace-note h3{margin:0 0 8px;font-size:1.1rem;letter-spacing:.045em}
+.palace-note p{margin:0;font-size:.9rem;line-height:1.5}
+.palace-choice{font-weight:800;color:#46545f;margin:7px 0}
+.palace-odds{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;font-size:.79rem;font-weight:900}
+.palace-odds span{display:inline-block;background:#f0e8cc;border:2px solid #9e997d;padding:7px 9px;color:#343f3a}
+.palace-odds span:first-child{background:#f9dfca;border-color:#bd8874}
+.palace-odds span:last-child{background:#dbe5d4;border-color:#87a080}
+#battle-controls .chooser [data-palace-auto]{display:block;margin:12px 0}
+@media(max-width:540px){.palace-odds{gap:4px}.palace-odds span{font-size:.69rem;padding:6px}}
