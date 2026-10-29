@@ -5,7 +5,7 @@ export const clone=x=>structuredClone(x);
 export const contextKey=s=>`${s.facility||'tower'}:${s.mode}:${s.levelMode}`;
 export function serializeEngine(e){return clone(Object.fromEntries(Object.entries(e).filter(([k])=>!['data','rng'].includes(k))));}
 export function createRun(state,engine,id=globalThis.crypto?.randomUUID?.()||('run-'+Date.now().toString(36)+'-'+Array.from(globalThis.crypto.getRandomValues(new Uint32Array(4)),n=>n.toString(16)).join('-'))){
- const now=new Date().toISOString();return {id,facility:'tower',mode:state.mode,levelMode:state.levelMode,name:`Tour ${state.mode} · ${now.slice(0,10)}`,createdAt:now,updatedAt:now,version:'0.6.2',rules:RUN_RULES,pack:CONTENT_PACK,team:clone(state.team),partner:clone(state.partner||[]),engine:serializeEngine(engine),actions:{},victories:engine.streak||0,trainerHistory:[],completedBattles:[],pastBattles:[],events:{},archived:false};
+ const now=new Date().toISOString();return {id,facility:'tower',mode:state.mode,levelMode:state.levelMode,splitMode:engine.splitMode||state.splitMode||'move',name:`Tour ${state.mode} · ${now.slice(0,10)}`,createdAt:now,updatedAt:now,version:'0.6.2',rules:RUN_RULES,pack:CONTENT_PACK,team:clone(state.team),partner:clone(state.partner||[]),engine:serializeEngine(engine),actions:{},victories:engine.streak||0,trainerHistory:[],completedBattles:[],pastBattles:[],events:{},archived:false};
 }
 export function captureRun(run,engine,actions={}){
  const next=clone(run);next.engine=serializeEngine(engine);next.actions=clone(actions);next.updatedAt=new Date().toISOString();
