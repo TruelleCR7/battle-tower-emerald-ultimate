@@ -27,7 +27,7 @@ test('Pike and regular battle renderers generate the exact same arena DOM',()=>{
  }
 });
 test('Pike uses regular move buttons, targets and switch cards, not selectors',()=>{
- const e=battle('double'),m=e.active('player')[0],t=e.active('opponent')[0];
+ const e=battle('single'),m=e.active('player')[0],t=e.active('opponent')[0];
  const initial=pikeMoveControls(e,{});
  assert.match(initial,/class="moves"/);
  assert.match(initial,/class="move /);
