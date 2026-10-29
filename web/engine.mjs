@@ -453,11 +453,11 @@ export class TowerEngine {
   const ability=defender.ability;
   if(ability==='ROUGH_SKIN'){
    this.hpLoss(attacker,Math.max(1,Math.floor(attacker.maxHp/16)),'Peau Dure');
-  }else if(ability==='STATIC'&&this.rng()<.3){
+  }else if(ability==='STATIC'&&this.rng()<1/3){
    this.inflict(attacker,'paralyze',defender);
-  }else if(ability==='POISON_POINT'&&this.rng()<.3){
+  }else if(ability==='POISON_POINT'&&this.rng()<1/3){
    this.inflict(attacker,'poison',defender);
-  }else if(ability==='FLAME_BODY'&&this.rng()<.3){
+  }else if(ability==='FLAME_BODY'&&this.rng()<1/3){
    this.inflict(attacker,'burn',defender);
   }else if(ability==='EFFECT_SPORE'&&this.rng()<.1){
    const effect=['poison','paralyze','sleep'][Math.floor(this.rng()*3)];
