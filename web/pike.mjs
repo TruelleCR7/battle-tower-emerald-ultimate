@@ -43,6 +43,7 @@ export function pikeStatusEffect(party,random=Math.random,data=null){
  // Reuse the engine's inflict() and useBerry() instead of setting status directly.
  const engine=data?Object.assign(Object.create(TowerEngine.prototype),{
   data,player:{party,active:[]},opponent:{party:[],active:[]},log:[],turn:0,rng:random,
+  write(text,event={}){this.log.unshift({turn:this.turn,text,...event});},
  }):null;
  for(let i=0;i<number;i++){
   if(!candidates.length)break;
