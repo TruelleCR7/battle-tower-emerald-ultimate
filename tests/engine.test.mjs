@@ -73,3 +73,21 @@ test('simulation en chaîne sans crash sur 50 tours',()=>{
   assert.ok(['active','won','lost'].includes(e.status),mode);
  }
 });
+
+test('le journal indique le split sélectionné',()=>{
+ const base=config('single',['METAGROSS','SWAMPERT','LATIOS']);
+ const classic=new TowerEngine(D,{...base,splitMode:'type'});
+ const modern=new TowerEngine(D,{...base,splitMode:'move'});
+ assert.ok(classic.log.some(e=>e.text.includes('selon le type')));
+ assert.ok(modern.log.some(e=>e.text.includes('selon chaque capacité')));
+});
+test('une attaque visant un ennemi ne peut pas cibler un allié en Duo',()=>{
+ const e=new TowerEngine(D,config('double',['METAGROSS','SALAMENCE','SWAMPERT','GENGAR']));
+ const [a,b]=e.active('player');
+ const attacking=a.moves.find(k=>D.moveData[k].target==='enemy'&&D.moveData[k].power>0);
+ assert.ok(attacking,'une attaque ciblée doit être disponible');
+ const other=b.moves.find(k=>D.moveData[k].target==='enemy'&&D.moveData[k].power>0);
+ assert.ok(other);
+ assert.throws(()=>e.turnActions([{actor:a.id,type:'move',move:attacking,target:b.id},{actor:b.id,type:'move',move:other,target:a.id}]),/adversaire actif/);
+ assert.equal(e.turn,0,'rejet avant toute mutation du tour');
+});
