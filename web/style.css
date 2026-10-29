@@ -161,3 +161,9 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 #battle-log .log-turn h3{background:#304954;padding:10px 14px}
 @media(max-width:600px){#battle-dialogue.dialogue{max-height:300px} .turn-feed-heading{padding:9px 10px} .turn-feed-heading span{display:none}.log-turn li{padding:8px 9px;font-size:11px} #battle-log.logs{max-height:420px}}
 @media(prefers-reduced-motion:reduce){.log-turn li{scroll-behavior:auto}}
+
+/* Playback: event lines are disclosed in execution order, and HP is animated. */
+#battle-dialogue .event-unrevealed{opacity:.13;filter:grayscale(1)}
+#battle-dialogue .log-turn li{transition:opacity .14s ease,background-color .14s ease}
+#battle-arena .hp-meter > span{transition:width .35s steps(12,end),background-color .15s}
+@media(prefers-reduced-motion:reduce){#battle-dialogue .log-turn li,#battle-arena .hp-meter > span{transition:none}}
