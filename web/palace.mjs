@@ -49,7 +49,7 @@ export function palaceChooseMove(engine,mon){
   // Emerald: when group is missing, fall back to another usable group but
   // 50% of the time the Pokemon cannot attack at all this turn.
   if(engine.rng()>=.5){
-   engine.write(`${mon.name} hésite et n'attaque pas ! (Palais : ${PALACE_GROUP_LABELS[group]})`);
+   engine.write(`${mon.name} hésite et n'attaque pas ! (Palais : ${PALACE_GROUP_LABELS[group]})`,{turn:engine.turn+1,kind:'palace'});
    return {actor:mon.id,type:'pass'};
   }
   candidates=usable;
@@ -59,7 +59,7 @@ export function palaceChooseMove(engine,mon){
  if(meta?.target==='self')chosen=mon;
  else if(meta?.target==='all'||meta?.target==='enemies'||meta?.target==='random'||meta?.target==='enemyfield')chosen=target;
  else if(foes.length>1)chosen=choice(engine.rng,foes);
- engine.write(`${mon.name} décide de ${meta?.name||move} (${PALACE_GROUP_LABELS[group]} · ${mon.nature}) !`);
+ engine.write(`${mon.name} décide de ${meta?.name||move} (${PALACE_GROUP_LABELS[group]} · ${mon.nature}) !`,{turn:engine.turn+1,kind:'palace'});
  return {actor:mon.id,type:'move',move,target:chosen?.id};
 }
 
