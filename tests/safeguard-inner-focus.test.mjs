@@ -69,3 +69,24 @@ test('Safeguard effects are captured in battle snapshots',()=>{
  e.safeguards={player:3,opponent:1};
  assert.deepEqual(e.snapshot().safeguards,{player:3,opponent:1});
 });
+
+test('Safeguard blocks Swagger confusion without preventing its Attack boost',()=>{
+ const {e,p,o}=setup();
+ e.safeguards={player:3};
+ e.statMove(o,p,{originalEffect:'SWAGGER'});
+ assert.equal(p.stages.atk,2);
+ assert.equal(p.confused,undefined);
+ assert.ok(e.log.some(x=>x.text.includes('protégé de la confusion')));
+});
+test('Without Safeguard Swagger still confuses while boosting Attack',()=>{
+ const {e,p,o}=setup();
+ e.statMove(o,p,{originalEffect:'SWAGGER'});
+ assert.equal(p.stages.atk,2);
+ assert.ok(p.confused>=2);
+});
+test('Safeguard protects from secondary attack-inflicted status as well',()=>{
+ const {e,p,o}=setup();
+ e.safeguards={player:3};
+ e.afterHit(o,p,{originalEffect:'BURN_HIT',secondaryChance:100});
+ assert.equal(p.status,'');
+});
