@@ -3,6 +3,7 @@
  */
 import {chooseTrainer,trainerTeam} from './frontier.mjs';
 import {effectiveStat,accuracyChance,baseDamage,weatherActive,STAT_KEYS,STAT_NAMES} from './battle-stats.mjs';
+import {normalizeSplitMode,splitCategory} from './split-mode.mjs';
 import {chooseEmeraldMove} from './ai_emerald_scripted.mjs';
 export const TYPE_CHART = {
  NORMAL:{ROCK:.5,GHOST:0,STEEL:.5}, FIRE:{FIRE:.5,WATER:.5,GRASS:2,ICE:2,BUG:2,ROCK:.5,DRAGON:.5,STEEL:2},
@@ -95,12 +96,12 @@ function canHitChargingTarget(moveKey,target){
 const statusTranslation={burn:'brûlure',paralyze:'paralysie',poison:'poison',toxic:'poison grave',freeze:'gel',sleep:'sommeil'};
 export class TowerEngine {
  constructor(data,config={}) {
-  this.data=data;this.mode=config.mode||'single';this.levelMode=config.levelMode||'50';this.level=this.levelMode==='50'?50:Math.max(60,...(config.team||[]).map(m=>m.level||50));
+  this.data=data;this.splitMode=normalizeSplitMode(config.splitMode);this.mode=config.mode||'single';this.levelMode=config.levelMode||'50';this.level=this.levelMode==='50'?50:Math.max(60,...(config.team||[]).map(m=>m.level||50));
   this.rngState=(config.seed??(Math.random()*0x100000000))>>>0;this.rng=config.rng||(()=>this.random());this.trainerHistory=config.trainerHistory||[];this.streak=config.streak||0;this.round=(this.streak%7)+1;this.series=Math.floor(this.streak/7)+1;
   this.log=[];this.turn=0;this.status='active';this.weather='';this.weatherTurns=0;this.hazards={player:0,opponent:0};
   this.player={party:[],active:[]};this.opponent={party:[],active:[]};this.trainer='Dresseur de la Tour';this.score=0;
   if(validateTeam(config.team,this.mode,this.levelMode,data).length)throw Error(validateTeam(config.team,this.mode,this.levelMode,data).join(' '));
-  this.sets=deep(config.team);this.originalConfig={mode:this.mode,levelMode:this.levelMode,team:this.sets,streak:this.streak};
+  this.sets=deep(config.team);this.originalConfig={mode:this.mode,levelMode:this.levelMode,team:this.sets,streak:this.streak,splitMode:this.splitMode};
   this.player.party=this.sets.map(x=>makeMon(x,data,'human',x.level||50));
   if(this.mode==='multi'||this.mode==='link'){
    const ally=(config.partner||this.makeRandomSets(2,this.sets)).slice(0,2);
@@ -178,7 +179,7 @@ export class TowerEngine {
  countAlive(side){return this[side].party.filter(x=>x.hp>0).length;}
  effectiveSpeed(m){return effectiveStat(this,m,'spe');}
  damagePreview(attacker,target,move,options={}){
-  if(move.category==='status')return {damage:0,mult:1};
+  if(splitCategory(this,move)==='status')return {damage:0,mult:1};
   const eff=effectiveness(move.type,target,this.data);if(eff===0)return {damage:0,mult:0};
   if(move.type==='GROUND'&&target.ability==='LEVITATE')return {damage:0,mult:0};
   if(target.ability==='WONDER_GUARD'&&eff<=1)return {damage:0,mult:0};
@@ -383,7 +384,7 @@ export class TowerEngine {
    if(t.guarded){this.write(`${t.name} se protège de ${move.name}.`);continue;}
    const hitAcc=accuracyChance(this,m,t,move);
    if(move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>hitAcc){this.write(`${m.name} manque sa cible ${t.name}.`);continue;}
-   if(move.category==='status'){this.targetStatus(m,t,move);continue;}
+   if(splitCategory(this,move)==='status'){this.targetStatus(m,t,move);continue;}
    const crit=!['BATTLE_ARMOR','SHELL_ARMOR'].includes(t.ability)&&(Math.floor(this.rng()*65536)%((move.effect==='crit')?8:16)===0);
    const result=retaliation!==null?{damage:retaliation,mult:effectiveness(move.type,t,this.data)===0?0:1,fixed:true}:this.damagePreview(m,t,move,{critical:crit,spread:recipients.length>1});
    if(result.mult===0){this.write(`Cela n'affecte pas ${t.name} !`);continue;}
@@ -399,7 +400,7 @@ export class TowerEngine {
    landed=true;
    if(t.substitute>0){let sub=Math.min(dmg,t.substitute);t.substitute-=sub;this.write(`${t.name} : le clone encaisse ${sub} dégâts !`);if(t.substitute<=0)this.write('Le clone disparaît !');continue;}
    if(t.item==='FOCUS_BAND'&&dmg>=t.hp&&this.rng()<.1)dmg=t.hp-1;
-   const dealt=this.hpLoss(t,dmg,'attaque');if(dealt)(t.receivedDamage??={})[move.category]={actor:m.id,amount:dealt};if(crit&&!result.fixed)this.write('Coup critique !');
+   const dealt=this.hpLoss(t,dmg,'attaque');if(dealt)(t.receivedDamage??={})[splitCategory(this,move)]={actor:m.id,amount:dealt};if(crit&&!result.fixed)this.write('Coup critique !');
    if(result.mult>=2)this.write('C’est super efficace !');if(result.mult>0&&result.mult<1)this.write('Ce n’est pas très efficace…');
    if(move.effect==='drain')this.heal(m,dealt/2);
    if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD')this.hpLoss(m,Math.max(1,Math.floor(dealt/3)),'contrecoup');
@@ -548,7 +549,7 @@ export class TowerEngine {
   if(this.countAlive('opponent')===0){this.status='won';this.write('Victoire ! Le combat est remporté.');this.score=1;}
   else if(this.countAlive('player')===0){this.status='lost';this.write('Défaite. La série s’arrête.');this.score=0;}
  }
- snapshot(){return {mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
+ snapshot(){return {splitMode:normalizeSplitMode(this.splitMode),mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
    weather:this.weather,trainer:this.trainer,log:this.log.slice(0,75),player:deep(this.player),opponent:deep(this.opponent),hazards:deep(this.hazards)};}
  exportState(){let snap=this.snapshot();delete snap.log;return snap;}
 }
