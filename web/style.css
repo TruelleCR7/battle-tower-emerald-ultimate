@@ -167,3 +167,7 @@ button.stat-changes{border:0;padding:0;background:transparent;min-height:32px}bu
 #battle-dialogue .log-turn li{transition:opacity .14s ease,background-color .14s ease}
 #battle-arena .hp-meter > span{transition:width .35s steps(12,end),background-color .15s}
 @media(prefers-reduced-motion:reduce){#battle-dialogue .log-turn li,#battle-arena .hp-meter > span{transition:none}}
+
+/* Clearly visible status VFX, above Gen V sprites without affecting layout. */
+.battle-status-vfx{position:absolute;z-index:5;left:50%;top:12%;transform:translateX(-50%);pointer-events:none;font:bold clamp(22px,4vw,38px)/1 sans-serif;white-space:nowrap;text-shadow:0 2px 2px #20313d,0 0 12px currentColor;filter:drop-shadow(0 0 7px currentColor)}
+.vfx-sleep{color:#b9c9ff;letter-spacing:4px}.vfx-ice{color:#8ae8ff}.vfx-poison{color:#d68dff}.vfx-electric{color:#ffdb5b}.vfx-fire{color:#ff916b}.vfx-confusion{color:#ffcb6c}

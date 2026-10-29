@@ -289,7 +289,7 @@ export class TowerEngine {
   if(effect==='BELLY_DRUM'){const cost=Math.max(1,Math.floor(m.maxHp/2));if(m.hp<=cost||m.stages.atk===6){this.write('Cognobidon échoue.');return true;}this.modify(m,'atk',6-m.stages.atk);this.hpLoss(m,cost,'Cognobidon');return true;}
   if(['SWAGGER','FLATTER'].includes(effect)){if(t.substitute>0){this.write('Le clone bloque la capacité.');return true;}this.modify(t,effect==='SWAGGER'?'atk':'spa',effect==='SWAGGER'?2:1,m);const protectedConfusion=t.ability==='OWN_TEMPO'||(this.sideOf(m)!==this.sideOf(t)&&this.safeguards?.[this.sideOf(t)]>0);
    if(!t.confused&&!protectedConfusion)t.confused=2+(Math.floor(this.rng()*65536)%4);
-   this.write(protectedConfusion?`${t.name} est protégé de la confusion.`:`${t.name} est confus.`);return true;}
+   this.write(protectedConfusion?`${t.name} est protégé de la confusion.`:`${t.name} est confus.`,protectedConfusion?{}:{kind:'status',actor:t.id,side:this.sideOf(t),status:'confusion'});return true;}
   if(effect==='MIST'){(this.mist??={})[this.sideOf(m)]=5;this.write('Brume protège des baisses de statistiques.');return true;}
   return false;
  }
@@ -326,8 +326,8 @@ export class TowerEngine {
   if(m.recharge>0){m.recharge--;this.write(`${m.name} doit se recharger.`);return false;}
   if(m.ability==='TRUANT'){m.truantTurn++;if(m.truantTurn%2===0){this.write(`${m.name} flemmarde (Absentéisme).`);return false;}}
   if(m.flinched){this.write(`${m.name} a peur !`);return false;}
-  if(m.status==='sleep'){m.sleep--;if(m.sleep<=0){m.status='';this.write(`${m.name} se réveille !`);}else{this.write(`${m.name} dort.`);return false;}}
-  if(m.status==='freeze'){if(this.rng()<.2){m.status='';this.write(`${m.name} dégèle !`);}else{this.write(`${m.name} est gelé.`);return false;}}
+  if(m.status==='sleep'){m.sleep--;if(m.sleep<=0){m.status='';this.write(`${m.name} se réveille !`);}else{this.write(`${m.name} dort.`,{kind:'status',actor:m.id,side:this.sideOf(m),status:'sleep'});return false;}}
+  if(m.status==='freeze'){if(this.rng()<.2){m.status='';this.write(`${m.name} dégèle !`);}else{this.write(`${m.name} est gelé.`,{kind:'status',actor:m.id,side:this.sideOf(m),status:'freeze'});return false;}}
   if(m.confused){m.confused--;if(m.confused&&Math.floor(this.rng()*65536)%2===0){const damage=baseDamage(this,m,m,{power:40,type:'MYSTERY',category:'physical',originalEffect:'HIT'});this.hpLoss(m,damage,'confusion');return false;}if(!m.confused)this.write(`${m.name} n’est plus confus.`);}
   if(m.status==='paralyze'&&this.rng()<.25){this.write(`${m.name} est totalement paralysé !`);return false;}
   return true;
@@ -430,7 +430,7 @@ export class TowerEngine {
   if(this.statMove(m,m,move))return;
   switch(move.effect){
    case 'heal':if(m.hp<m.maxHp)this.heal(m,m.maxHp/2);else this.write('Tous les PV sont déjà présents.');break;
-   case 'rest':if(m.hp===m.maxHp&&!m.status){this.write('Repos échoue.');break;}m.status='sleep';m.sleep=2;this.heal(m,m.maxHp);this.write(`${m.name} s'endort pour récupérer.`);this.useBerry(m);break;
+   case 'rest':if(m.hp===m.maxHp&&!m.status){this.write('Repos échoue.');break;}m.status='sleep';m.sleep=2;this.heal(m,m.maxHp);this.write(`${m.name} s'endort pour récupérer.`,{kind:'status',actor:m.id,side:this.sideOf(m),status:'sleep'});this.useBerry(m);break;
    case 'calm':this.modify(m,'spa',1);this.modify(m,'spd',1);break;
    case 'swords':this.modify(m,'atk',2);break;
    case 'dragondance':this.modify(m,'atk',1);this.modify(m,'spe',1);break;
