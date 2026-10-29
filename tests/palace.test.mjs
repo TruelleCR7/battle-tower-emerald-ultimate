@@ -68,7 +68,7 @@ test('Palace full battle turn automatically chooses a move and respects held PP'
  const {e,p,o}=battle(()=>0);
  const result=e.turnActions([{actor:'p',type:'palace'}]);
  assert.equal(e.turn,1);
- assert.ok(e.log.some(x=>x.text.includes('décide de')));
+ assert.ok(e.log.some(x=>x.text.includes('décide de')&&x.turn===e.turn));
  assert.equal(p.pp.TACKLE,34);
  assert.ok(o.hp<100);
  assert.equal(result.facility,'palace');
