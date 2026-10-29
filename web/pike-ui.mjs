@@ -1,6 +1,6 @@
 import {createPike,pikePickDoor,pikeResolveEvent,pikeFinishRoom,pikeNextPass,pikeLucyTeam,pikeBrainTier} from './pike.mjs';
-import {createLabBattle} from './lab-engine.mjs';
-import {TowerEngine} from './engine.mjs';
+import {createPikeBattle,repairPikeBattle} from './pike-battle.mjs';
+import {TowerEngine,makeMon} from './engine.mjs';
 import {BattlePresenter} from './battle-presentation.mjs';
 import {bindBattleSprites} from './battle-view.mjs';
 import {targetPlan} from './battle-ui.mjs';
@@ -62,7 +62,7 @@ function start(){
   const level=levelMode==='50'?50:60;
   const sets=species.map(key=>({...setFor(key),level}));
   const pike=createPike(sets);
-  const temp=createLabBattle(D,{mode:'single',player:sets,opponent:[setFor('SEVIPER')],seed:83479});
+  const temp=createPikeBattle(D,{sets,party:sets.map(p=>makeMon(p,D,'human',p.level)),opponents:[setFor('SEVIPER')],mode:'single',levelMode,seed:83479,trainer:'Préparation'});
   save={pike,sets,levelMode,party:structuredClone(temp.player.party),combat:null,history:[]};
   battle=null;persist();render();show('pike-play');
  }catch(err){$('#pike-message').textContent=err.message;}
@@ -85,18 +85,11 @@ function setupBattle(door){
  }
  const level=save.levelMode==='50'?50:Math.max(60,...save.sets.map(p=>p.level));
  opponents=opponents.map(p=>({...p,level}));
- // Keep all 3 challengers in solo and duo; each side's action logic uses the common engine.
- const e=createLabBattle(D,{mode,player:save.sets,opponent:opponents,seed:Math.floor(Math.random()*0xffffffff),deferEntryEffects:true});
- e.player.party=structuredClone(save.party);
- e.player.party.forEach(p=>{p.active=false;p.owner='human';p.guarded=false;p.flinched=false;p.charging=null;});
- e.player.active=[];
- e.initializeSide('player');
- e.opponent.party.forEach(p=>p.owner='cpu');
- // Trainer AI remains the same source-backed AI as the regular Battle Tower.
- e.trainer=title;e.trainerData={id:'pike-'+save.pike.totalRooms,name:title};
- e.write('Reptile de Combat : '+title);
- e.entryEffects([...e.active('opponent'),...e.active('player')]);
- battle=e;save.combat=null;persist();
+ // Each expedition battle runs the actual Frontier engine, with its normal CPU AI.
+ const e=createPikeBattle(D,{sets:save.sets,party:save.party,opponents,mode,levelMode:save.levelMode,
+  seed:Math.floor(Math.random()*0xffffffff),trainer:title});
+ e.trainerData={id:'pike-'+save.pike.totalRooms,name:title};
+ battle=e;pikeActions={};save.combat=null;persist();
 }
 function playerCard(p){
  return '<div class="pike-mon"><b>'+esc(p.name)+'</b><span>'+p.hp+'/'+p.maxHp+' PV · '+esc(p.status||'OK')+'</span><small>'+esc(p.ability||'')+' · '+esc(p.item||'NONE')+'</small></div>';
@@ -120,6 +113,7 @@ function roomView(){
 }
 function pickDoor(index){
  try{
+  if(!save.party.some(p=>p.hp>0)){save.pike.phase='lost';persist();render();return;}
   const door=pikePickDoor(save.pike,index);
   if(save.pike.phase==='battle')setupBattle(door);
   persist();render();
@@ -208,7 +202,7 @@ async function init(){
  const response=await fetch('./data/catalog.json');if(!response.ok)throw Error('Catalogue indisponible');D=await response.json();
  teamBuilder();
  $('#pike-start').onclick=start;
- $('#pike-resume').onclick=()=>{save=load();battle=restoreBattle(save.combat);pikeActions=save.combatActions||{};show('pike-play');render();};
+ $('#pike-resume').onclick=()=>{save=load();battle=restoreBattle(save.combat);if(battle)repairPikeBattle(battle);pikeActions=save.combatActions||{};show('pike-play');render();};
  $('#pike-save').onclick=persist;
  $('#pike-reset').onclick=restart;
  $('#pike-leave').onclick=()=>{persist();show('pike-intro');$('#pike-resume').classList.remove('hidden');};
