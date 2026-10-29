@@ -1,5 +1,6 @@
 import {createLabBattle,labRequiredActions,playLabTurn,labReplacements,labReplace} from './lab-engine.mjs';
 import {STAT_KEYS,STAT_NAMES,effectiveStat} from './battle-stats.mjs';
+import {moveDetails} from './split-mode.mjs';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 let D,battle,setup,teams,version=0;
@@ -41,7 +42,7 @@ function renderSetup(){
 }
 function start(){
  try{
-  setup={mode:$('#lab-mode').value,seed:Number($('#lab-seed').value),player:structuredClone(teams.player),opponent:structuredClone(teams.opponent)};
+  setup={mode:$('#lab-mode').value,splitMode:$('#lab-split').value,seed:Number($('#lab-seed').value),player:structuredClone(teams.player),opponent:structuredClone(teams.opponent)};
   battle=createLabBattle(D,setup);
   $('#lab-setup').classList.add('hidden');$('#lab-battle').classList.remove('hidden');$('#lab-setup-error').textContent='';
   renderBattle();
@@ -60,7 +61,7 @@ function actionBox({id,name,side,moves,pp,bench},targets){
  const user=battle.get(id);
  return '<div class="lab-action" data-actor="'+esc(id)+'"><b>'+esc(name)+' · '+(side==='player'?'BLEU':'ROUGE')+'</b>'+(user.charging?'<p><strong>Tour de libération automatique : '+esc(D.moveData[user.charging.move]?.name||user.charging.move)+'</strong></p>':'')+
  '<label>ACTION<select class="lab-action-type"><option value="move">Attaquer</option>'+(bench.length?'<option value="switch">Changer de Pokémon</option>':'')+'</select></label>'+
- '<label>CAPACITÉ<select class="lab-action-move">'+moves.filter(k=>!user.charging||user.charging.move===k).map(k=>'<option value="'+esc(k)+'" '+(pp[k]<=0&&!user.charging?'disabled':'')+'>'+esc(D.moveData[k]?.name||k)+' · '+pp[k]+' PP</option>').join('')+'</select></label>'+
+ '<label>CAPACITÉ<select class="lab-action-move">'+moves.filter(k=>!user.charging||user.charging.move===k).map(k=>'<option value="'+esc(k)+'" '+(pp[k]<=0&&!user.charging?'disabled':'')+'>'+esc(D.moveData[k]?.name||k)+' · Puis. '+moveDetails(D.moveData[k],battle.splitMode).power+' · Préc. '+moveDetails(D.moveData[k],battle.splitMode).accuracy+' · '+pp[k]+' PP</option>').join('')+'</select></label>'+
  '<label>CIBLE<select class="lab-action-target">'+targets.filter(t=>t.id!==id).map(t=>'<option value="'+esc(t.id)+'" '+(battle.sideOf(t)!==side?'selected':'')+'>'+esc(t.name)+' · '+(battle.sideOf(t)==='player'?'BLEU':'ROUGE')+'</option>').join('')+'</select></label>'+
  '<label>REMPLACER PAR<select class="lab-action-switch">'+bench.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')+'</select></label></div>';
 }
