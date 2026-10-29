@@ -7,7 +7,7 @@ import {createLabBattle} from '../web/lab-engine.mjs';
 import {createPikeBattle} from '../web/pike-battle.mjs';
 import {readFileSync} from 'node:fs';
 const mkMove=(type,category,power=80)=>({type,category,power,accuracy:95,name:type,pp:15,target:'enemy',originalEffect:'HIT',effect:'damage'});
-const data={species:{A:{types:['NORMAL'],stats:[100,150,50,50,150,100],abilities:['NONE']},B:{types:['NORMAL'],stats:[100,75,75,75,75,75],abilities:['NONE']}},speciesNames:{A:'A',B:'B'},moveData:{
+const data={species:{A:{types:['NORMAL'],stats:[100,150,50,90,50,150],abilities:['NONE']},B:{types:['NORMAL'],stats:[100,75,75,75,75,75],abilities:['NONE']}},speciesNames:{A:'A',B:'B'},moveData:{
  BITE:mkMove('DARK','physical'),FIRE_PUNCH:mkMove('FIRE','physical'),SHADOW_BALL:mkMove('GHOST','special'),TACKLE:mkMove('NORMAL','physical')}};
 const set=(species)=>({species,level:50,nature:'HARDY',ability:'NONE',item:'NONE',moves:Object.keys(data.moveData),ivs:[31,31,31,31,31,31],evs:[0,0,0,0,0,0]});
 test('Gen III type split maps Dark/Fire to special and Ghost to physical',()=>{
