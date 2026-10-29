@@ -9,6 +9,7 @@ import {exportSave,validateImport,restoreEngine} from './storage.mjs';
 import {TowerEngine,validateTeam,statsFor,makeMon,TYPE_CHART} from './engine.mjs';
 import {renderCombatMon,renderBattleArena} from './battle-view.mjs';
 import {normalizeSplitMode,splitCategory,moveDetails} from './split-mode.mjs';
+import {palaceChances} from './palace.mjs';
 const $=sel=>document.querySelector(sel), $$=sel=>[...document.querySelectorAll(sel)];
 const STORE='battle-tower-emerald-v05';const LEGACY_STORE='battle-tower-simple-v03';const deepCopy=o=>JSON.parse(JSON.stringify(o));
 const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -241,13 +242,15 @@ function renderBattle(){if(!engine)return;const snap=engine.snapshot(),run=state
   let html='<div class="palace-note"><h3>♜ PALAIS · COMBAT AUTONOME</h3><p>Les attaques sont choisies par chaque Pokémon selon sa nature, son niveau de PV et ses capacités. Tu peux seulement continuer le tour ou changer de Pokémon.</p></div>';
   for(const mon of controllable){
    const selected=actions[mon.id];
-   html+='<div class="chooser"><h3>'+escapeHTML(mon.name)+' · '+escapeHTML(FR_NATURES[mon.nature]||mon.nature)+'</h3><p class="palace-choice">Action : '+(selected?.type==='switch'?'Remplacement par '+escapeHTML(engine.get(selected.to)?.name||'—'):'Décision automatique selon la nature')+'</p>';
+   const low=mon.hp*2<=mon.maxHp&&mon.status!=='sleep',chances=palaceChances(mon.nature,low);
+   html+='<div class="chooser"><h3>'+escapeHTML(mon.name)+' · '+escapeHTML(FR_NATURES[mon.nature]||mon.nature)+'</h3><p class="palace-choice">Action : '+(selected?.type==='switch'?'Remplacement par '+escapeHTML(engine.get(selected.to)?.name||'—'):'Décision automatique selon la nature')+'</p><div class="palace-odds" title="Probabilités de catégories selon la nature"><span>⚔ Attaque '+chances.attack+' %</span><span>◈ Défense '+chances.defense+' %</span><span>✦ Soutien '+chances.support+' %</span></div><small>'+ (low?'Moitié des PV ou moins':'Plus de la moitié des PV')+'</small><button class="textbutton" data-palace-auto="'+mon.id+'" '+(!selected?'disabled':'')+'>ANNULER LE CHANGEMENT · AUTO</button>';
    html+='<details class="bench-panel"><summary>CHANGER '+escapeHTML(mon.name)+'</summary><div class="bench-list">'+engine.player.party.filter(p=>p.owner===mon.owner).map(p=>'<button class="bench-card" data-switch-actor="'+mon.id+'" data-switch-to="'+p.id+'" '+(p.active||p.hp<=0?'disabled':'')+'>'+memberCard(p)+'</button>').join('')+'</div></details></div>';
   }
   if(switchPrompt){const from=engine.get(switchPrompt.actor),to=engine.get(switchPrompt.to);html+='<div class="switch-confirm"><p>Remplacer '+escapeHTML(from.name)+' par '+escapeHTML(to.name)+' ?</p><button id="confirm-switch">CONFIRMER</button><button id="cancel-switch">ANNULER</button></div>';}
   html+='<div class="combat-actions"><button id="palace-turn" class="btn primary" '+(switchPrompt?'disabled':'')+'>LAISSER LES POKÉMON AGIR ▶</button></div>';
   $('#battle-controls').innerHTML=html;
-  $$('[data-switch-actor]').forEach(b=>b.onclick=()=>{switchPrompt={actor:b.dataset.switchActor,to:b.dataset.switchTo};renderBattle();});
+  $('[data-switch-actor]').forEach(b=>b.onclick=()=>{switchPrompt={actor:b.dataset.switchActor,to:b.dataset.switchTo};renderBattle();});
+  $('[data-palace-auto]').forEach(b=>b.onclick=()=>{delete actions[b.dataset.palaceAuto];switchPrompt=null;saveBattleSession();renderBattle();});
   if($('#confirm-switch')){$('#confirm-switch').onclick=()=>{const {actor,to}=switchPrompt;actions[actor]={actor,type:'switch',to};switchPrompt=null;saveBattleSession();renderBattle();};$('#cancel-switch').onclick=()=>{switchPrompt=null;renderBattle();};}
   $('#palace-turn').onclick=async()=>{if(storageFailed||presenting)return;$('#palace-turn').disabled=true;
    try{await saveQueue;const backup=deepCopy(state.runs.find(r=>r.id===activeRun));
