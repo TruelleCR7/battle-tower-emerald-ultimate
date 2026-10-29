@@ -13,7 +13,7 @@ export function pikeBattleFrame(engine,controls){
  return '<div class="battle-title pike-shared-title"><div><small>REPTILE DE COMBAT · '+mode+'</small><h2>'+esc(engine.trainer)+'</h2></div><span class="streak">TOUR '+(engine.turn+1)+'</span></div>'+
   '<div class="pixel-frame" id="battle-board"><div class="arena" id="battle-arena">'+renderBattleArena(engine)+'</div>'+
   '<div class="controls" id="battle-controls">'+controls+'</div>'+
-  '<div class="dialogue" id="battle-dialogue" aria-live="polite">'+pikeBattleLog(engine).slice(0,700)+'</div></div>'+
+  '<div class="dialogue" id="battle-dialogue" aria-live="polite">'+(engine.log.filter(e=>e.turn===engine.turn).slice(0,3).map(e=>'<p>'+esc(e.text)+'</p>').join('')||'<p>Choisis une action pour commencer.</p>')+'</div></div>'
   '<div class="battle-bottom"><button type="button" class="textbutton" id="pike-log-toggle">HISTORIQUE COMPLET ▾</button></div>'+
   '<div id="battle-log" class="logs hidden">'+pikeBattleLog(engine)+'</div>';
 }
