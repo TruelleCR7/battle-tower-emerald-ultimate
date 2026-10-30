@@ -91,3 +91,21 @@ test('une attaque visant un ennemi ne peut pas cibler un allié en Duo',()=>{
  assert.throws(()=>e.turnActions([{actor:a.id,type:'move',move:attacking,target:b.id},{actor:b.id,type:'move',move:other,target:a.id}]),/adversaire actif/);
  assert.equal(e.turn,0,'rejet avant toute mutation du tour');
 });
+
+test('Clonage coûte des PV et émet un événement rejouable',()=>{
+ const e=new TowerEngine(D,config('single',['METAGROSS','SWAMPERT','LATIOS']));
+ const m=e.player.party[0],before=m.hp;
+ e.selfMove(m,{effect:'substitute',name:'Clonage'});
+ const cost=Math.floor(m.maxHp/4);
+ assert.equal(m.hp,before-cost);
+ assert.equal(m.substitute,cost);
+ assert.ok(e.log.some(x=>x.kind==='damage'&&x.actor===m.id&&x.amount===cost));
+ assert.ok(e.log.some(x=>x.kind==='substitute-create'&&x.actor===m.id));
+});
+test('Clonage échoue sans consommer des PV si son coût ferait tomber à zéro',()=>{
+ const e=new TowerEngine(D,config('single',['METAGROSS','SWAMPERT','LATIOS']));
+ const m=e.player.party[0];m.hp=Math.floor(m.maxHp/4);
+ e.selfMove(m,{effect:'substitute',name:'Clonage'});
+ assert.equal(m.substitute,0);
+ assert.equal(m.hp,Math.floor(m.maxHp/4));
+});
