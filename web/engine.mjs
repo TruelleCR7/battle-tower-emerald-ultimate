@@ -25,6 +25,15 @@ export const TYPE_CHART = {
 // Sound moves in the Gen III battle engine. Soundproof does not block the user's own actions.
 export const SOUND_MOVES=new Set(['GROWL','ROAR','SING','SUPERSONIC','SCREECH','SNORE','UPROAR','HYPER_VOICE','METAL_SOUND','GRASS_WHISTLE','PERISH_SONG']);
 export function soundproofBlocks(moveKey,attacker,defender){return attacker?.id!==defender?.id&&defender?.ability==='SOUNDPROOF'&&SOUND_MOVES.has(moveKey);}
+export const MULTI_HIT_2_TO_5=new Set(['DOUBLE_SLAP','COMET_PUNCH','FURY_ATTACK','PIN_MISSILE','SPIKE_CANNON','BARRAGE','FURY_SWIPES','BONE_RUSH','BULLET_SEED','ICICLE_SPEAR','ROCK_BLAST']);
+export const MULTI_HIT_FIXED={DOUBLE_KICK:2,BONEMERANG:2,TWINEEDLE:2,TRIPLE_KICK:3};
+export function multiHitCount(moveKey,rng,ability){
+ if(Object.hasOwn(MULTI_HIT_FIXED,moveKey))return MULTI_HIT_FIXED[moveKey];
+ if(!MULTI_HIT_2_TO_5.has(moveKey))return 1;
+ if(ability==='SKILL_LINK')return 5;
+ const roll=Math.floor(rng()*65536)%8;
+ return roll<3?2:roll<6?3:roll===6?4:5;
+}
 export const STATS=['hp','atk','def','spe','spa','spd'];
 export const NATURE_EFFECT={LONELY:['atk','def'],BRAVE:['atk','spe'],ADAMANT:['atk','spa'],NAUGHTY:['atk','spd'],BOLD:['def','atk'],RELAXED:['def','spe'],IMPISH:['def','spa'],LAX:['def','spd'],TIMID:['spe','atk'],HASTY:['spe','def'],JOLLY:['spe','spa'],NAIVE:['spe','spd'],MODEST:['spa','atk'],MILD:['spa','def'],QUIET:['spa','spe'],RASH:['spa','spd'],CALM:['spd','atk'],GENTLE:['spd','def'],SASSY:['spd','spe'],CAREFUL:['spd','spa']};
 let sequence=0;
@@ -398,29 +407,44 @@ export class TowerEngine {
    const hitAcc=accuracyChance(this,m,t,move);
    if(move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>hitAcc){this.write(`${m.name} manque sa cible ${t.name}.`);continue;}
    if(splitCategory(this,move)==='status'){this.targetStatus(m,t,move);continue;}
-   const crit=!['BATTLE_ARMOR','SHELL_ARMOR'].includes(t.ability)&&(Math.floor(this.rng()*65536)%((move.effect==='crit')?8:16)===0);
-   const result=retaliation!==null?{damage:retaliation,mult:effectiveness(move.type,t,this.data,this.inverseBattle)===0?0:1,fixed:true}:this.damagePreview(m,t,move,{critical:crit,spread:recipients.length>1});
-   if(result.mult===0){this.write(`Cela n'affecte pas ${t.name} !`);continue;}
-   if(t.ability==='FLASH_FIRE'&&move.type==='FIRE'){
-     t.flashFire=true;
-     this.write(`${t.name} absorbe l'attaque Feu grâce à Torche !`);
-     continue;
+   const count=multiHitCount(name,this.rng,m.ability);
+   let hits=0;
+   for(let hit=0;hit<count&&t.hp>0&&m.hp>0;hit++){
+    // Triple Kick increases its base power each time and checks accuracy per hit.
+    if(hit>0&&name==='TRIPLE_KICK'&&move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>accuracyChance(this,m,t,move))break;
+    const hitMove=name==='TRIPLE_KICK'?{...move,power:move.power*(hit+1)}:move;
+    const crit=!['BATTLE_ARMOR','SHELL_ARMOR'].includes(t.ability)&&(Math.floor(this.rng()*65536)%((move.effect==='crit')?8:16)===0);
+    const result=retaliation!==null?{damage:retaliation,mult:effectiveness(move.type,t,this.data,this.inverseBattle)===0?0:1,fixed:true}:this.damagePreview(m,t,hitMove,{critical:crit,spread:recipients.length>1});
+    if(result.mult===0){this.write(`Cela n'affecte pas ${t.name} !`);break;}
+    if(t.ability==='FLASH_FIRE'&&move.type==='FIRE'){
+      t.flashFire=true;this.write(`${t.name} absorbe l'attaque Feu grâce à Torche !`);break;
+    }
+    if((t.ability==='VOLT_ABSORB'&&move.type==='ELECTRIC')||(t.ability==='WATER_ABSORB'&&move.type==='WATER')){
+      this.write(`${t.name} absorbe l'attaque grâce à ${t.ability} !`);this.heal(t,t.maxHp/4);break;
+    }
+    let dmg=result.fixed?result.damage:Math.max(1,Math.floor(result.damage*(100-(Math.floor(this.rng()*65536)%16))/100));
+    landed=true;hits++;
+    if(t.substitute>0){
+      const sub=Math.min(dmg,t.substitute);t.substitute-=sub;
+      this.write(`${t.name} : le clone encaisse ${sub} dégâts !`,{kind:'substitute-hit',actor:t.id,side:this.sideOf(t),amount:sub,remaining:t.substitute});
+      if(t.substitute<=0)this.write('Le clone disparaît !',{kind:'substitute-break',actor:t.id,side:this.sideOf(t)});
+      if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(sub/2)));
+      if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD'&&m.hp>0)this.hpLoss(m,Math.max(1,Math.floor(sub/3)),'contrecoup');
+      continue;
+    }
+    if(t.item==='FOCUS_BAND'&&dmg>=t.hp&&this.rng()<.1)dmg=t.hp-1;
+    const dealt=this.hpLoss(t,dmg,'attaque');
+    if(dealt)(t.receivedDamage??={})[splitCategory(this,move)]={actor:m.id,amount:dealt};
+    if(crit&&!result.fixed)this.write('Coup critique !');
+    if(result.mult>=2)this.write('C’est super efficace !');if(result.mult>0&&result.mult<1)this.write('Ce n’est pas très efficace…');
+    if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(dealt/2)));
+    if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD')this.hpLoss(m,Math.max(1,Math.floor(dealt/3)),'contrecoup');
+    if(m.item==='SHELL_BELL'&&dealt&&m.hp>0)this.heal(m,dealt/8);
+    this.afterHit(m,t,move);
+    this.contactEffects(m,t,name,move);
+    if(t.hp<=0&&t.destiny&&m.hp>0)this.hpLoss(m,m.hp,'Prélèvement Destin');
    }
-   if(t.ability==='VOLT_ABSORB'&&move.type==='ELECTRIC'||t.ability==='WATER_ABSORB'&&move.type==='WATER'){
-     this.write(`${t.name} absorbe l'attaque grâce à ${t.ability} !`);this.heal(t,t.maxHp/4);continue;
-   }
-   let dmg=result.fixed?result.damage:Math.max(1,Math.floor(result.damage*(100-(Math.floor(this.rng()*65536)%16))/100));
-   landed=true;
-   if(t.substitute>0){let sub=Math.min(dmg,t.substitute);t.substitute-=sub;this.write(`${t.name} : le clone encaisse ${sub} dégâts !`,{kind:'substitute-hit',actor:t.id,side:this.sideOf(t),amount:sub,remaining:t.substitute});if(t.substitute<=0)this.write('Le clone disparaît !',{kind:'substitute-break',actor:t.id,side:this.sideOf(t)});if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(sub/2)));if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD'&&m.hp>0)this.hpLoss(m,Math.max(1,Math.floor(sub/3)),'contrecoup');continue;}
-   if(t.item==='FOCUS_BAND'&&dmg>=t.hp&&this.rng()<.1)dmg=t.hp-1;
-   const dealt=this.hpLoss(t,dmg,'attaque');if(dealt)(t.receivedDamage??={})[splitCategory(this,move)]={actor:m.id,amount:dealt};if(crit&&!result.fixed)this.write('Coup critique !');
-   if(result.mult>=2)this.write('C’est super efficace !');if(result.mult>0&&result.mult<1)this.write('Ce n’est pas très efficace…');
-   if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(dealt/2)));
-   if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD')this.hpLoss(m,Math.max(1,Math.floor(dealt/3)),'contrecoup');
-   if(m.item==='SHELL_BELL'&&dealt&&m.hp>0)this.heal(m,dealt/8);
-   this.afterHit(m,t,move);
-   this.contactEffects(m,t,name,move);
-   if(t.hp<=0&&t.destiny&&m.hp>0)this.hpLoss(m,m.hp,'Prélèvement Destin');
+   if(count>1&&hits>0)this.write(`Touché ${hits} fois !`,{kind:'multi-hit',actor:t.id,side:this.sideOf(t),hits});
   }
   if(move.effect==='explode'&&m.hp>0){this.hpLoss(m,m.hp,'Explosion');}
   if(landed&&move.effect==='superpower'){this.modify(m,'atk',-1);this.modify(m,'def',-1);}
