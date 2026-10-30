@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {TowerEngine,validateTeam,statsFor,effectiveness,soundproofBlocks} from '../web/engine.mjs';
+import {TowerEngine,validateTeam,statsFor,effectiveness,soundproofBlocks,multiHitCount} from '../web/engine.mjs';
 const D=JSON.parse(readFileSync(new URL('../data/catalog.json',import.meta.url),'utf8'));
 const fresh=(s)=>JSON.parse(JSON.stringify(D.sets[s]));
 const config=(mode,team)=>({mode,team:team.map(fresh),levelMode:'50',seed:123456});
@@ -151,4 +151,27 @@ test('Anti-Bruit empêche une attaque sonore réelle sans dépenser de PV',()=>{
  e.execute(a,{actor:a.id,type:'move',move:'HYPER_VOICE',target:b.id});
  assert.equal(b.hp,before);
  assert.ok(e.log.some(event=>event.ability==='SOUNDPROOF'));
+});
+
+test('coups multiples Gen III : pondération 2/3/4/5 et Multi-Coups',()=>{
+ const roll=n=>()=>n/65536;
+ assert.equal(multiHitCount('BULLET_SEED',roll(0),'NONE'),2);
+ assert.equal(multiHitCount('BULLET_SEED',roll(2),'NONE'),2);
+ assert.equal(multiHitCount('BULLET_SEED',roll(3),'NONE'),3);
+ assert.equal(multiHitCount('BULLET_SEED',roll(6),'NONE'),4);
+ assert.equal(multiHitCount('BULLET_SEED',roll(7),'NONE'),5);
+ assert.equal(multiHitCount('BULLET_SEED',roll(0),'SKILL_LINK'),5);
+ assert.equal(multiHitCount('DOUBLE_KICK',roll(0),'NONE'),2);
+ assert.equal(multiHitCount('TRIPLE_KICK',roll(0),'NONE'),3);
+ assert.equal(multiHitCount('THUNDERBOLT',roll(0),'SKILL_LINK'),1);
+});
+test('une capacité à coups multiples inflige des dégâts coup par coup et annonce le total',()=>{
+ const e=new TowerEngine(D,config('single',['METAGROSS','SWAMPERT','LATIOS']));
+ const actor=e.active('player')[0],foe=e.active('opponent')[0];
+ actor.moves=['BULLET_SEED'];actor.pp.BULLET_SEED=10;actor.ability='SKILL_LINK';
+ foe.hp=foe.maxHp;foe.ability='NONE';
+ e.execute(actor,{actor:actor.id,type:'move',move:'BULLET_SEED',target:foe.id});
+ const amounts=e.log.filter(x=>x.kind==='damage'&&x.actor===foe.id);
+ assert.ok(amounts.length>=2,'les coups doivent produire des événements de dégâts distincts');
+ assert.ok(e.log.some(x=>x.kind==='multi-hit'&&x.hits>=2));
 });
