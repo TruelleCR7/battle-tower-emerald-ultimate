@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {TowerEngine,validateTeam,statsFor,effectiveness} from '../web/engine.mjs';
+import {TowerEngine,validateTeam,statsFor,effectiveness,soundproofBlocks} from '../web/engine.mjs';
 const D=JSON.parse(readFileSync(new URL('../data/catalog.json',import.meta.url),'utf8'));
 const fresh=(s)=>JSON.parse(JSON.stringify(D.sets[s]));
 const config=(mode,team)=>({mode,team:team.map(fresh),levelMode:'50',seed:123456});
@@ -133,4 +133,22 @@ test('Combat inversé : dégâts réels et mode indépendant du split',()=>{
  const base=normal.damagePreview(attacker,target,move);
  const reversed=inverse.damagePreview(inverse.opponent.party[0],inverse.player.party[0],move);
  assert.ok(base.mult!==reversed.mult||base.mult===1);
+});
+
+test('Anti-Bruit bloque les attaques sonores, pas les autres attaques',()=>{
+ const actor={id:'a',ability:'NONE'},defender={id:'b',ability:'SOUNDPROOF'};
+ for(const move of ['SING','SUPERSONIC','SCREECH','GROWL','ROAR','HYPER_VOICE','UPROAR','SNORE','METAL_SOUND'])
+  assert.equal(soundproofBlocks(move,actor,defender),true,move);
+ assert.equal(soundproofBlocks('THUNDERBOLT',actor,defender),false);
+ assert.equal(soundproofBlocks('SING',actor,{...defender,ability:'LEVITATE'}),false);
+ assert.equal(soundproofBlocks('SING',defender,defender),false);
+});
+test('Anti-Bruit empêche une attaque sonore réelle sans dépenser de PV',()=>{
+ const e=new TowerEngine(D,config('single',['METAGROSS','SWAMPERT','LATIOS']));
+ const a=e.active('player')[0],b=e.active('opponent')[0];
+ b.ability='SOUNDPROOF';a.moves=['HYPER_VOICE'];a.pp.HYPER_VOICE=5;
+ const before=b.hp;
+ e.execute(a,{actor:a.id,type:'move',move:'HYPER_VOICE',target:b.id});
+ assert.equal(b.hp,before);
+ assert.ok(e.log.some(event=>event.ability==='SOUNDPROOF'));
 });

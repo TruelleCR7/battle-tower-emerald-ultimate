@@ -22,6 +22,9 @@ export const TYPE_CHART = {
  DRAGON:{DRAGON:2,STEEL:.5}, DARK:{FIGHTING:.5,PSYCHIC:2,GHOST:2,DARK:.5,STEEL:.5},
  STEEL:{FIRE:.5,WATER:.5,ELECTRIC:.5,ICE:2,ROCK:2,STEEL:.5}
 };
+// Sound moves in the Gen III battle engine. Soundproof does not block the user's own actions.
+export const SOUND_MOVES=new Set(['GROWL','ROAR','SING','SUPERSONIC','SCREECH','SNORE','UPROAR','HYPER_VOICE','METAL_SOUND','GRASS_WHISTLE','PERISH_SONG']);
+export function soundproofBlocks(moveKey,attacker,defender){return attacker?.id!==defender?.id&&defender?.ability==='SOUNDPROOF'&&SOUND_MOVES.has(moveKey);}
 export const STATS=['hp','atk','def','spe','spa','spd'];
 export const NATURE_EFFECT={LONELY:['atk','def'],BRAVE:['atk','spe'],ADAMANT:['atk','spa'],NAUGHTY:['atk','spd'],BOLD:['def','atk'],RELAXED:['def','spe'],IMPISH:['def','spa'],LAX:['def','spd'],TIMID:['spe','atk'],HASTY:['spe','def'],JOLLY:['spe','spa'],NAIVE:['spe','spd'],MODEST:['spa','atk'],MILD:['spa','def'],QUIET:['spa','spe'],RASH:['spa','spd'],CALM:['spd','atk'],GENTLE:['spd','def'],SASSY:['spd','spe'],CAREFUL:['spd','spa']};
 let sequence=0;
@@ -389,6 +392,7 @@ export class TowerEngine {
   else recipients=[target&&target.hp>0&&target.active?target:this.active(foe)[0]].filter(Boolean);
   if(!recipients.length)return;
   for(const t of recipients){if(t.hp<=0)continue;
+   if(soundproofBlocks(name,m,t)){this.write(`${t.name} est immunisé grâce à Anti-Bruit !`,{kind:'ability',actor:t.id,side:this.sideOf(t),ability:'SOUNDPROOF'});continue;}
    if(!canHitChargingTarget(name,t)){this.write(`${t.name} est hors de portée de ${move.name}.`);continue;}
    if(t.guarded){this.write(`${t.name} se protège de ${move.name}.`);continue;}
    const hitAcc=accuracyChance(this,m,t,move);
