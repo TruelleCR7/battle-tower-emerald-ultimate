@@ -408,7 +408,7 @@ export class TowerEngine {
    if(move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>hitAcc){this.write(`${m.name} manque sa cible ${t.name}.`);continue;}
    if(splitCategory(this,move)==='status'){this.targetStatus(m,t,move);continue;}
    const count=multiHitCount(name,this.rng,m.ability);
-   let hits=0;
+   let hits=0,totalDealt=0;
    for(let hit=0;hit<count&&t.hp>0&&m.hp>0;hit++){
     // Triple Kick increases its base power each time and checks accuracy per hit.
     if(hit>0&&name==='TRIPLE_KICK'&&move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>accuracyChance(this,m,t,move))break;
@@ -433,17 +433,17 @@ export class TowerEngine {
       continue;
     }
     if(t.item==='FOCUS_BAND'&&dmg>=t.hp&&this.rng()<.1)dmg=t.hp-1;
-    const dealt=this.hpLoss(t,dmg,'attaque');
+    const dealt=this.hpLoss(t,dmg,'attaque');totalDealt+=dealt;
     if(dealt)(t.receivedDamage??={})[splitCategory(this,move)]={actor:m.id,amount:dealt};
     if(crit&&!result.fixed)this.write('Coup critique !');
     if(result.mult>=2)this.write('C’est super efficace !');if(result.mult>0&&result.mult<1)this.write('Ce n’est pas très efficace…');
     if(move.effect==='drain')this.drainRecovery(m,t,Math.max(1,Math.floor(dealt/2)));
     if(move.effect==='recoil3'&&m.ability!=='ROCK_HEAD')this.hpLoss(m,Math.max(1,Math.floor(dealt/3)),'contrecoup');
-    if(m.item==='SHELL_BELL'&&dealt&&m.hp>0)this.heal(m,dealt/8);
     this.afterHit(m,t,move);
     this.contactEffects(m,t,name,move);
     if(t.hp<=0&&t.destiny&&m.hp>0)this.hpLoss(m,m.hp,'Prélèvement Destin');
    }
+   if(m.item==='SHELL_BELL'&&totalDealt>0&&m.hp>0)this.heal(m,Math.floor(totalDealt/8));
    if(count>1&&hits>0)this.write(`Touché ${hits} fois !`,{kind:'multi-hit',actor:t.id,side:this.sideOf(t),hits});
   }
   if(move.effect==='explode'&&m.hp>0){this.hpLoss(m,m.hp,'Explosion');}
