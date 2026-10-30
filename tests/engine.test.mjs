@@ -109,3 +109,28 @@ test('Clonage échoue sans consommer des PV si son coût ferait tomber à zéro'
  assert.equal(m.substitute,0);
  assert.equal(m.hp,Math.floor(m.maxHp/4));
 });
+
+test('Combat inversé XY : affinités simples et immunités de type',()=>{
+ const rock={species:'TYRANITAR',ability:'SAND_STREAM'};
+ const ghost={species:'GENGAR',ability:'CURSED_BODY'};
+ assert.equal(effectiveness('FIGHTING',rock,D,false),4);
+ assert.equal(effectiveness('FIGHTING',rock,D,true),.25);
+ assert.equal(effectiveness('NORMAL',ghost,D,false),0);
+ assert.equal(effectiveness('NORMAL',ghost,D,true),2);
+ assert.equal(effectiveness('GROUND',{species:'FLYGON',ability:'LEVITATE'},D,true),0);
+ assert.equal(effectiveness('FIRE',{species:'SWAMPERT',ability:'TORRENT'},D,true),4);
+});
+test('Combat inversé : dégâts réels et mode indépendant du split',()=>{
+ const setup=config('single',['METAGROSS','SWAMPERT','LATIOS']);
+ const normal=new TowerEngine(D,{...setup,inverseBattle:false});
+ const inverse=new TowerEngine(D,{...setup,inverseBattle:true,splitMode:'type'});
+ const target=normal.player.party[0],attacker=normal.opponent.party[0];
+ assert.equal(normal.inverseBattle,false);assert.equal(inverse.inverseBattle,true);
+ assert.equal(inverse.splitMode,'type');
+ assert.equal(inverse.originalConfig.inverseBattle,true);
+ assert.equal(inverse.snapshot().inverseBattle,true);
+ const move=D.moveData.TACKLE;
+ const base=normal.damagePreview(attacker,target,move);
+ const reversed=inverse.damagePreview(inverse.opponent.party[0],inverse.player.party[0],move);
+ assert.ok(base.mult!==reversed.mult||base.mult===1);
+});
