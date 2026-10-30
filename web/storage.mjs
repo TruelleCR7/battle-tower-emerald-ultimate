@@ -1,12 +1,12 @@
 import {validateTeam} from './engine.mjs';
 import {migrateState,RUN_RULES,CONTENT_PACK} from './runs.mjs';
 export const SAVE_SCHEMA=2;
-const ENGINE_KEYS=['facility','splitMode','safeguards','mode','levelMode','level','rngState','trainerHistory','streak','round','series','log','turn','status','weather','weatherTurns','hazards','player','opponent','trainer','score','sets','originalConfig','trainerData','screens','reflections','lightScreens','mist','pendingReplacements'];
+const ENGINE_KEYS=['facility','splitMode','inverseBattle','safeguards','mode','levelMode','level','rngState','trainerHistory','streak','round','series','log','turn','status','weather','weatherTurns','hazards','player','opponent','trainer','score','sets','originalConfig','trainerData','screens','reflections','lightScreens','mist','pendingReplacements'];
 function finiteTree(x){if(typeof x==='number'&&!Number.isFinite(x))throw Error('Nombre invalide.');if(x&&typeof x==='object')for(const [k,v] of Object.entries(x)){if(['__proto__','constructor','prototype'].includes(k))throw Error('Clé interdite.');finiteTree(v);}}
 function validateSnapshot(e,data){
  if(!e||!['active','won','lost'].includes(e.status)||!Number.isInteger(e.turn)||e.turn<0||!Number.isInteger(e.rngState)||e.rngState<0||e.rngState>0xffffffff||!Number.isInteger(e.streak)||e.streak<0)throw Error('État de combat invalide.');
  if(Object.keys(e).some(k=>!ENGINE_KEYS.includes(k)))throw Error('Propriété du moteur inconnue.');
- if(e.splitMode!==undefined&&!['move','type'].includes(e.splitMode))throw Error('Split physique/spécial invalide.');
+ if(e.splitMode!==undefined&&!['move','type'].includes(e.splitMode))throw Error('Split physique/spécial invalide.');if(e.inverseBattle!==undefined&&typeof e.inverseBattle!=='boolean')throw Error('Combat inversé invalide.');
  if(e.facility!==undefined&&!['tower','factory','dome','palace'].includes(e.facility))throw Error('Installation invalide.');
  const ids=new Set();for(const side of ['player','opponent']){const s=e[side];if(!Array.isArray(s?.party)||!s.party.length||s.party.length>4||!Array.isArray(s.active)||s.active.length>2)throw Error('Groupe de combat invalide.');
  for(const m of s.party){if(typeof m.id!=='string'||ids.has(m.id)||!data.species[m.species]||!Number.isInteger(m.hp)||!Number.isInteger(m.maxHp)||m.maxHp<=0||m.maxHp>1000||m.hp<0||m.hp>m.maxHp||!m.stats||!m.stages||!m.pp||!Array.isArray(m.moves)||m.moves.some(k=>!data.moveData[k])||!['human','human2','cpu','cpu1','cpu2','partner'].includes(m.owner))throw Error('Pokémon de combat invalide.');ids.add(m.id);}
@@ -18,7 +18,7 @@ export function validateImport(raw,data){
  finiteTree(raw);
  if(!raw||![1,SAVE_SCHEMA].includes(raw.schema)||raw.application!=='battle-tower-emerald')throw Error('Format de sauvegarde non reconnu.');
  const s=structuredClone(raw.state);if(!s||!['single','double','multi'].includes(s.mode)||!['50','open'].includes(s.levelMode))throw Error('Format ou niveau invalide.');
- if(s.splitMode!==undefined&&!['move','type'].includes(s.splitMode))throw Error('Split physique/spécial invalide.');
+ if(s.splitMode!==undefined&&!['move','type'].includes(s.splitMode))throw Error('Split physique/spécial invalide.');if(s.inverseBattle!==undefined&&typeof s.inverseBattle!=='boolean')throw Error('Combat inversé invalide.');
  // The editable team can be incomplete while a player is building it.
  if(!Array.isArray(s.team)||s.team.length>4)throw Error('Équipe invalide.');
  const errors=validateTeam(s.team,s.mode,s.levelMode,data).filter(x=>!x.startsWith('Ce mode nécessite'));if(errors.length)throw Error(errors.join(' · '));
