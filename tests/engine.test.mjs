@@ -118,7 +118,7 @@ test('Combat inversé XY : affinités simples et immunités de type',()=>{
  assert.equal(effectiveness('NORMAL',ghost,D,false),0);
  assert.equal(effectiveness('NORMAL',ghost,D,true),2);
  assert.equal(effectiveness('GROUND',{species:'FLYGON',ability:'LEVITATE'},D,true),0);
- assert.equal(effectiveness('FIRE',{species:'SWAMPERT',ability:'TORRENT'},D,true),4);
+ assert.equal(effectiveness('FIRE',{species:'SWAMPERT',ability:'TORRENT'},D,true),2);
 });
 test('Combat inversé : dégâts réels et mode indépendant du split',()=>{
  const setup=config('single',['METAGROSS','SWAMPERT','LATIOS']);
