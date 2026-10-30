@@ -25,9 +25,13 @@ export const TYPE_CHART = {
 export const STATS=['hp','atk','def','spe','spa','spd'];
 export const NATURE_EFFECT={LONELY:['atk','def'],BRAVE:['atk','spe'],ADAMANT:['atk','spa'],NAUGHTY:['atk','spd'],BOLD:['def','atk'],RELAXED:['def','spe'],IMPISH:['def','spa'],LAX:['def','spd'],TIMID:['spe','atk'],HASTY:['spe','def'],JOLLY:['spe','spa'],NAIVE:['spe','spd'],MODEST:['spa','atk'],MILD:['spa','def'],QUIET:['spa','spe'],RASH:['spa','spd'],CALM:['spd','atk'],GENTLE:['spd','def'],SASSY:['spd','spe'],CAREFUL:['spd','spa']};
 let sequence=0;
-export function effectiveness(type, target, data){
+export function effectiveness(type, target, data, inverse=false){
+  // Each defending type is inverted independently; ability immunities remain absolute.
   if(type==='GROUND' && target.ability==='LEVITATE') return 0;
-  return (data.species[target.species].types||['NORMAL']).reduce((x,t)=>x*(TYPE_CHART[type]?.[t]??1),1);
+  return (data.species[target.species].types||['NORMAL']).reduce((x,t)=>{
+    const factor=TYPE_CHART[type]?.[t]??1;
+    return x*(inverse?(factor===0?2:1/factor):factor);
+  },1);
 }
 export function statsFor(set,data,level=50){
   const base=data.species[set.species].stats, ivs=set.ivs||[31,31,31,31,31,31], evs=set.evs||[0,0,0,0,0,0];
@@ -97,12 +101,12 @@ function canHitChargingTarget(moveKey,target){
 const statusTranslation={burn:'brûlure',paralyze:'paralysie',poison:'poison',toxic:'poison grave',freeze:'gel',sleep:'sommeil'};
 export class TowerEngine {
  constructor(data,config={}) {
-  this.data=data;this.facility=config.facility||'tower';this.splitMode=normalizeSplitMode(config.splitMode);this.mode=config.mode||'single';this.levelMode=config.levelMode||'50';this.level=this.levelMode==='50'?50:Math.max(60,...(config.team||[]).map(m=>m.level||50));
+  this.data=data;this.facility=config.facility||'tower';this.splitMode=normalizeSplitMode(config.splitMode);this.inverseBattle=!!config.inverseBattle;this.mode=config.mode||'single';this.levelMode=config.levelMode||'50';this.level=this.levelMode==='50'?50:Math.max(60,...(config.team||[]).map(m=>m.level||50));
   this.rngState=(config.seed??(Math.random()*0x100000000))>>>0;this.rng=config.rng||(()=>this.random());this.trainerHistory=config.trainerHistory||[];this.streak=config.streak||0;this.round=(this.streak%7)+1;this.series=Math.floor(this.streak/7)+1;
   this.log=[];this.turn=0;this.status='active';this.weather='';this.weatherTurns=0;this.hazards={player:0,opponent:0};
   this.player={party:[],active:[]};this.opponent={party:[],active:[]};this.trainer='Dresseur de la Tour';this.score=0;
   if(validateTeam(config.team,this.mode,this.levelMode,data).length)throw Error(validateTeam(config.team,this.mode,this.levelMode,data).join(' '));
-  this.sets=deep(config.team);this.originalConfig={mode:this.mode,levelMode:this.levelMode,team:this.sets,streak:this.streak,splitMode:this.splitMode,facility:this.facility};
+  this.sets=deep(config.team);this.originalConfig={mode:this.mode,levelMode:this.levelMode,team:this.sets,streak:this.streak,splitMode:this.splitMode,inverseBattle:this.inverseBattle,facility:this.facility};
   this.player.party=this.sets.map(x=>makeMon(x,data,'human',x.level||50));
   if(this.mode==='multi'||this.mode==='link'){
    const ally=(config.partner||this.makeRandomSets(2,this.sets)).slice(0,2);
@@ -115,6 +119,7 @@ export class TowerEngine {
   opponents.forEach((x,i)=>this.opponent.party.push(makeMon(x,data,this.mode==='multi'||this.mode==='link'?(i<2?'cpu1':'cpu2'):'cpu',this.level)));
   this.initializeSide('player');this.initializeSide('opponent');
   this.write(`Défi n° ${this.streak+1} · ${this.trainer} !`);
+  if(this.inverseBattle)this.write('COMBAT INVERSÉ : les faiblesses et résistances sont inversées !');
   this.write(this.splitMode==='type'?'Catégories physique/spéciale selon le type (règles Émeraude).':'Catégories physique/spéciale selon chaque capacité (split moderne).');
   if(!config.deferEntryEffects)this.entryEffects([...this.opponent.active,...this.player.active].map(id=>this.get(id)).filter(Boolean));
  }
@@ -182,7 +187,7 @@ export class TowerEngine {
  effectiveSpeed(m){return effectiveStat(this,m,'spe');}
  damagePreview(attacker,target,move,options={}){
   if(splitCategory(this,move)==='status')return {damage:0,mult:1};
-  const eff=effectiveness(move.type,target,this.data);if(eff===0)return {damage:0,mult:0};
+  const eff=effectiveness(move.type,target,this.data,this.inverseBattle);if(eff===0)return {damage:0,mult:0};
   if(move.type==='GROUND'&&target.ability==='LEVITATE')return {damage:0,mult:0};
   if(target.ability==='WONDER_GUARD'&&eff<=1)return {damage:0,mult:0};
   if(move.originalEffect==='LEVEL_DAMAGE')return {damage:attacker.level,mult:eff,fixed:true};
@@ -191,7 +196,7 @@ export class TowerEngine {
   if(move.originalEffect==='SUPER_FANG')return {damage:Math.max(1,Math.floor(target.hp/2)),mult:eff,fixed:true};
   let damage=baseDamage(this,attacker,target,move,options);
   if(this.data.species[attacker.species].types.includes(move.type))damage=Math.floor(damage*15/10);
-  for(const type of this.data.species[target.species].types)damage=Math.floor(damage*(TYPE_CHART[move.type]?.[type]??1));
+  for(const type of this.data.species[target.species].types){const factor=TYPE_CHART[move.type]?.[type]??1;damage=Math.floor(damage*(this.inverseBattle?(factor===0?2:1/factor):factor));}
   return {damage:Math.max(1,damage),mult:eff};
  }
 
@@ -390,7 +395,7 @@ export class TowerEngine {
    if(move.accuracy!==0&&(Math.floor(this.rng()*65536)%100+1)>hitAcc){this.write(`${m.name} manque sa cible ${t.name}.`);continue;}
    if(splitCategory(this,move)==='status'){this.targetStatus(m,t,move);continue;}
    const crit=!['BATTLE_ARMOR','SHELL_ARMOR'].includes(t.ability)&&(Math.floor(this.rng()*65536)%((move.effect==='crit')?8:16)===0);
-   const result=retaliation!==null?{damage:retaliation,mult:effectiveness(move.type,t,this.data)===0?0:1,fixed:true}:this.damagePreview(m,t,move,{critical:crit,spread:recipients.length>1});
+   const result=retaliation!==null?{damage:retaliation,mult:effectiveness(move.type,t,this.data,this.inverseBattle)===0?0:1,fixed:true}:this.damagePreview(m,t,move,{critical:crit,spread:recipients.length>1});
    if(result.mult===0){this.write(`Cela n'affecte pas ${t.name} !`);continue;}
    if(t.ability==='FLASH_FIRE'&&move.type==='FIRE'){
      t.flashFire=true;
@@ -456,7 +461,7 @@ export class TowerEngine {
   }
   if(m!==t&&this.sideOf(m)!==this.sideOf(t)&&t.substitute>0){this.write(`${t.name} est protégé par son clone !`);return;}
   if(this.statMove(m,t,move))return;
-  if(effectiveness(move.type,t,this.data)===0&&['paralyze','toxic','poison'].includes(move.effect)){this.write('Cible immunisée.');return;}
+  if(effectiveness(move.type,t,this.data,this.inverseBattle)===0&&['paralyze','toxic','poison'].includes(move.effect)){this.write('Cible immunisée.');return;}
   switch(move.effect){
    case 'burn':this.inflict(t,'burn',m);break;
    case 'paralyze':this.inflict(t,'paralyze',m);break;
@@ -576,7 +581,7 @@ export class TowerEngine {
   if(this.countAlive('opponent')===0){this.status='won';this.write('Victoire ! Le combat est remporté.');this.score=1;}
   else if(this.countAlive('player')===0){this.status='lost';this.write('Défaite. La série s’arrête.');this.score=0;}
  }
- snapshot(){return {facility:this.facility||'tower',splitMode:normalizeSplitMode(this.splitMode),mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
+ snapshot(){return {facility:this.facility||'tower',splitMode:normalizeSplitMode(this.splitMode),inverseBattle:!!this.inverseBattle,mode:this.mode,levelMode:this.levelMode,round:this.round,series:this.series,streak:this.streak,turn:this.turn,status:this.status,safeguards:deep(this.safeguards||{}),
    weather:this.weather,trainer:this.trainer,log:this.log.slice(0,75),player:deep(this.player),opponent:deep(this.opponent),hazards:deep(this.hazards)};}
  exportState(){let snap=this.snapshot();delete snap.log;return snap;}
 }
