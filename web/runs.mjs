@@ -2,7 +2,7 @@
 export const RUN_RULES='emerald-split4-v060';
 export const CONTENT_PACK='emerald-731ad5b';
 export const clone=x=>structuredClone(x);
-export const contextKey=s=>`${s.facility||'tower'}:${s.mode}:${s.levelMode}`;
+export const contextKey=s=>`${s.facility||'tower'}:${s.mode}:${s.levelMode}:${!!s.inverseBattle}`;
 export function serializeEngine(e){return clone(Object.fromEntries(Object.entries(e).filter(([k])=>!['data','rng'].includes(k))));}
 export function createRun(state,engine,id=globalThis.crypto?.randomUUID?.()||('run-'+Date.now().toString(36)+'-'+Array.from(globalThis.crypto.getRandomValues(new Uint32Array(4)),n=>n.toString(16)).join('-'))){
  const now=new Date().toISOString();return {id,facility:'tower',mode:state.mode,levelMode:state.levelMode,splitMode:engine.splitMode||state.splitMode||'move',inverseBattle:!!engine.inverseBattle,name:`Tour ${state.mode} · ${now.slice(0,10)}`,createdAt:now,updatedAt:now,version:'0.6.2',rules:RUN_RULES,pack:CONTENT_PACK,team:clone(state.team),partner:clone(state.partner||[]),engine:serializeEngine(engine),actions:{},victories:engine.streak||0,trainerHistory:[],completedBattles:[],pastBattles:[],events:{},archived:false};
