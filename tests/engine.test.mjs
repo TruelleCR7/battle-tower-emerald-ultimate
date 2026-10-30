@@ -179,7 +179,7 @@ test('une capacité à coups multiples inflige des dégâts coup par coup et ann
 test('Grelot Coque : un seul soin basé sur tous les dégâts des coups multiples',()=>{
  const e=new TowerEngine(D,config('single',['METAGROSS','SWAMPERT','LATIOS']));
  const actor=e.active('player')[0],foe=e.active('opponent')[0];
- actor.moves=['ROCK_BLAST'];actor.pp.ROCK_BLAST=5;actor.ability='SKILL_LINK';actor.item='SHELL_BELL';
+ actor.moves=['ROCK_BLAST'];actor.pp.ROCK_BLAST=5;actor.ability='SKILL_LINK';actor.item='SHELL_BELL';e.data.moveData.ROCK_BLAST.accuracy=0;
  actor.hp=Math.floor(actor.maxHp/2);actor.stats.atk=2200;
  foe.hp=2000;foe.maxHp=2000;foe.stats.def=900;foe.ability='NONE';
  const before=foe.hp,original=actor.hp;
